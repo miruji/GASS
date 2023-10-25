@@ -20,6 +20,9 @@ Therefore, assistance to the project is welcome; when modifying, take into accou
 ## Syntax template
 global function
 ```
+\\ in case of implicit type specification for func || proc
+\\ compiler will check the expected return and operations that are addressed to the code block name
+
 proc test:
 end
 \\ or
@@ -28,6 +31,8 @@ end
 ```
 global procedure
 ```
+\\ compiler exception: the main function will automatically turn return 0 if return was not specified.
+
 func test:
   return 0;
 end
@@ -38,6 +43,9 @@ end
 ```
 local func & proc rule
 ```
+\\ local or otherwise temporary func || proc are used as areas for stubs, or code for variables, etc. 
+\\ if no need to go beyond a certain section of code
+
 proc test:
   a = :
     return 10
@@ -70,7 +78,8 @@ end
 ```
 func & proc parameters
 ```
-\\ in global
+\\ parameters can be omitted for global func & proc
+
 func main()
 \\ or
 func main
@@ -85,6 +94,8 @@ local in local ->> yes
 ```
 if & switch
 ```
+\\ as before, we use the usual temporary sections of code : end
+
 a = 10
 if (a == 10):
 end
@@ -124,10 +135,20 @@ private MyClass2:
   \\ this is class
   test = "test text"
 end
+
+\*
+thus classes are designed for OOP and wrapping global functions and variables into objects.
+access is regulated by private and public flags both when declaring a class and internally for specific elements.
+*\
 ```
-types
+types & variables
 ```
 \\ all types are expected to be used as in gas
+
+a = "Hello!"
+string a = "Hello!"
+
+\\ this should give more control when needed
 ```
 gas code
 ```
