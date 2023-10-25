@@ -1,19 +1,34 @@
 package gass;
 
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
+import gass.Tokenizer.Token;
+import gass.Tokenizer.Tokenizer;
+import gass.io.fs.File;
+import gass.io.log.Log;
+import gass.io.log.LogType;
+
 public class Main {
     public static void main(String[] args) {
-        // Press Alt+Enter with your caret at the highlighted text to see how
-        // IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        // args / argv check : TO:DO:
+        // debug mode
+        boolean debugMode = false; // args : TO:DO:
+        if (debugMode)
+            Log.debugStackTraceFlag = true;
 
-        // Press Shift+F10 or click the green arrow button in the gutter to run the code.
-        for (int i = 1; i <= 5; i++) {
+        // start
+        new Log(LogType.info, "start\n");
 
-            // Press Shift+F9 to start debugging your code. We have set one breakpoint
-            // for you, but you can always add more by pressing Ctrl+F8.
-            System.out.println("i = " + i);
-        }
+        // open .ll file
+        String openFilePath = "release/Main.gs";
+
+        String openFile = File.getFileString(openFilePath);
+        new Log(LogType.info, "Open file data: ["+openFile+"]\n");
+
+        // tokenizer
+        Tokenizer tokenizer = new Tokenizer(openFile);
+
+        StringBuilder tokensStr = new StringBuilder("Tokenizer output: [\n");
+        for (Token token : tokenizer.tokens)
+            tokensStr.append("    [").append(token.type).append("]: [").append(token.word).append("]\n");
+        new Log(LogType.info, tokensStr.append("] \n").toString());
     }
 }
