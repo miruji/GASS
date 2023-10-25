@@ -27,8 +27,12 @@ public class Main {
         Tokenizer tokenizer = new Tokenizer(openFile);
 
         StringBuilder tokensStr = new StringBuilder("Tokenizer output: [\n");
-        for (Token token : tokenizer.tokens)
-            tokensStr.append("    [").append(token.type).append("]: [").append(token.word).append("]\n");
+        for (Token token : tokenizer.tokens) {
+            if (token.word != null)
+                tokensStr.append("    [").append(token.type).append("]: [").append(token.word).append("]\n");
+            else
+                tokensStr.append("    [").append(token.type).append("]\n");
+        }
         new Log(LogType.info, tokensStr.append("] \n").toString());
     }
 }

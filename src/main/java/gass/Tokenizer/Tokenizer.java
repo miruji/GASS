@@ -4,6 +4,7 @@ import gass.io.log.Log;
 import gass.io.log.LogType;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Tokenizer {
     public final ArrayList<Token> tokens;
@@ -18,52 +19,74 @@ public class Tokenizer {
 
         while (counter < inputLength) {
             if ( !deleteComments() )
-            if ( !addToken(getQuotes('`'), TokenType.quote) )
-            if ( !addToken(getQuotes('"'), TokenType.quote) )
-            if ( !addToken(getQuotes('\''), TokenType.quote) )
-            if ( !addToken(getFloatNumber(), TokenType.floatNumber) )
-            if ( !addToken(getNumber(), TokenType.number) )
-            if ( !addToken(getWord(), TokenType.word) )
-            if ( !addToken(getLogicalOperator(), TokenType.doubleLogicalOperator) )
-            if ( !addToken(getMathOperator(), TokenType.doubleMathOperator) )
+            if ( !addToken(getQuotes('`'), TokenType.BACK_QUOTE) )
+            if ( !addToken(getQuotes('"'), TokenType.DOUBLE_QUOTE) )
+            if ( !addToken(getQuotes('\''), TokenType.SINGLE_QUOTE) )
+            if ( !addToken(getFloatNumber(), TokenType.FLOAT) )
+            if ( !addToken(getNumber(), TokenType.NUMBER) )
+            if ( !addToken(getWord(), TokenType.WORD) )
+            if ( !addToken(getLogicalOperator(), TokenType.NONE) )
+            if ( !addToken(getMathOperator(), TokenType.NONE) )
                 {
                 char c = input.charAt(counter);
                 //
                 if (c == '\u001F' && tokens.isEmpty())
                     counter++;
                 else {
-                    if (c == '\u001F' && tokens.get(tokens.size()-1).type != TokenType.endline)
-                        addToken(String.valueOf(c), TokenType.endline);
+                    if (c == '\u001F' && tokens.get(tokens.size()-1).type != TokenType.ENDLINE)
+                        addToken(" ", TokenType.ENDLINE);
                     else
-                    if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '%')
-                        addToken(String.valueOf(c), TokenType.singleMathOperator);
+                    // single math
+                    if (c == '+')
+                        addToken(" ", TokenType.PLUS);
                     else
-                    if (c == '?' || c == '!')
-                        addToken(String.valueOf(c), TokenType.singleLogicalOperator);
+                    if (c == '-')
+                        addToken(" ", TokenType.MINUS);
                     else
+                    if (c == '*')
+                        addToken(" ", TokenType.MULTIPLY);
+                    else
+                    if (c == '/')
+                        addToken(" ", TokenType.DEVIDE);
+                    else
+                    if (c == '=')
+                        addToken(" ", TokenType.EQUAL);
+                    else
+                    if (c == '%')
+                        addToken(" ", TokenType.MODULO);
+                    else
+                    // single logical
+                    if (c == '?')
+                        addToken(" ", TokenType.QUESTION);
+                    else
+                    if (c == '!')
+                        addToken(" ", TokenType.NOT);
+                    else
+                    // brackets
                     if (c == '(')
-                        addToken(String.valueOf(c), TokenType.parameterBegin);
+                        addToken(" ", TokenType.PARAMETER_BEGIN);
                     else
                     if (c == ')')
-                        addToken(String.valueOf(c), TokenType.parameterEnd);
+                        addToken(" ", TokenType.PARAMETER_END);
                     else
                     if (c == '{')
-                        addToken(String.valueOf(c), TokenType.classBegin);
+                        addToken(" ", TokenType.CLASS_BEGIN);
                     else
                     if (c == '}')
-                        addToken(String.valueOf(c), TokenType.classEnd);
+                        addToken(" ", TokenType.CLASS_END);
                     else
                     if (c == '[')
-                        addToken(String.valueOf(c), TokenType.arrayBegin);
+                        addToken(" ", TokenType.ARRAY_BEGIN);
                     else
                     if (c == ']')
-                        addToken(String.valueOf(c), TokenType.arrayEnd);
+                        addToken(" ", TokenType.ARRAY_END);
                     else
+                    //
                     if (c == ':')
-                        addToken(String.valueOf(c), TokenType.blockBegin);
+                        addToken(" ", TokenType.BLOCK_BEGIN);
                     else
                     if (c == ',')
-                        addToken(String.valueOf(c), TokenType.comma);
+                        addToken(" ", TokenType.COMMA);
                     counter++;
                 }
             }
@@ -73,11 +96,62 @@ public class Tokenizer {
     }
     private boolean addToken(String token, TokenType type) {
         if (!token.isEmpty()) {
+            if (token.equals(" ")) token = null;
+
             // preparser rename types
-            if (type == TokenType.word && token.equals("end"))
-                type = TokenType.blockEnd;
-            if (type == TokenType.word && token.equals("return"))
-                type = TokenType.returnValue;
+            if (type == TokenType.WORD) {
+                if (Objects.equals(token, "end"))
+                    type = TokenType.END;
+                else
+                if (Objects.equals(token, "private"))
+                    type = TokenType.PRIVATE;
+                else
+                if (Objects.equals(token, "public"))
+                    type = TokenType.PUBLIC;
+                else
+                if (Objects.equals(token, "return"))
+                    type = TokenType.RETURN_VALUE;
+
+                if (type != TokenType.WORD)
+                    token = null;
+            } else
+            if (type == TokenType.NONE) {
+                // double math
+                if (Objects.equals(token, "++"))
+                    type = TokenType.INCREMENT;
+                else
+                if (Objects.equals(token, "+="))
+                    type = TokenType.PLUS_EQUALS;
+                else
+                if (Objects.equals(token, "--"))
+                    type = TokenType.DECREMENT;
+                else
+                if (Objects.equals(token, "-="))
+                    type = TokenType.MINUS_EQUALS;
+                else
+                if (Objects.equals(token, "*="))
+                    type = TokenType.MULTIPLY_EQUALS;
+                else
+                if (Objects.equals(token, "/="))
+                    type = TokenType.DIVIDE_EQUALS;
+                else
+                // double logical
+                if (Objects.equals(token, "!="))
+                    type = TokenType.NOT_EQUAL;
+                else
+                if (Objects.equals(token, "=="))
+                    type = TokenType.DOUBLE_EQUAL;
+                else
+                if (Objects.equals(token, "&&"))
+                    type = TokenType.AND;
+                else
+                if (Objects.equals(token, "||"))
+                    type = TokenType.OR;
+
+                if (type != TokenType.NONE)
+                    token = null;
+            }
+
             //
             tokens.add(new Token(token, type));
             return true;
@@ -195,8 +269,8 @@ public class Tokenizer {
         switch (input.charAt(counter)) {
             case '+' -> result = nextChar == '=' ? "+=" : (nextChar == '+' ? "++" : "");
             case '-' -> result = nextChar == '=' ? "-=" : (nextChar == '-' ? "--" : "");
-            case '*' -> result = nextChar == '=' ? "*=" : (nextChar == '*' ? "**" : "");
-            case '/' -> result = nextChar == '=' ? "/=" : (nextChar == '/' ? "//" : "");
+            case '*' -> result = nextChar == '=' ? "*=" : "";
+            case '/' -> result = nextChar == '=' ? "/=" : "";
             default -> {
                 return "";
             }

@@ -3,30 +3,53 @@ package gass.Tokenizer;
 public enum TokenType {
     // Tokenizer types
         // basic
-        word,
-        number,
-        floatNumber,
-        endline,
-        quote,
-        // operator
-        singleMathOperator,
-        doubleMathOperator,
-        singleLogicalOperator,
-        doubleLogicalOperator,
+            NONE,    // none
+            WORD,    // word
+            NUMBER,  // number
+            FLOAT,   // float number
+            ENDLINE, // endline
+        // quotes
+            BACK_QUOTE,   // `
+            DOUBLE_QUOTE, // "
+            SINGLE_QUOTE, // '
+        // single math
+            PLUS,     // +
+            MINUS,    // -
+            MULTIPLY, // *
+            DEVIDE,   // /
+            EQUAL,    // =
+            MODULO,   // %
+        // double math
+            INCREMENT,       // ++
+            PLUS_EQUALS,     // +=
+            DECREMENT,       // --
+            MINUS_EQUALS,    // -=
+            MULTIPLY_EQUALS, // *=
+            DIVIDE_EQUALS,   // /=
+        // single logical
+            QUESTION, // ?
+            NOT,      // !
+        // double logical
+            NOT_EQUAL,    // !=
+            DOUBLE_EQUAL, // ==
+            AND,          // &&
+            OR,           // ||
     // Parser types
         // parameter
-        parameterBegin,
-        parameterEnd,
+            PARAMETER_BEGIN, // (
+            PARAMETER_END,   // )
         // array
-        arrayBegin,
-        arrayEnd,
+            ARRAY_BEGIN, // [
+            ARRAY_END,   // ]
         // class
-        classBegin,
-        classEnd,
+            CLASS_BEGIN, // {
+            CLASS_END,   // }
+            PRIVATE,     // private
+            PUBLIC,      // public
         // block
-        blockBegin,
-        blockEnd,
+            BLOCK_BEGIN, // :
+            END,         // end
     // ~
-        comma,
-        returnValue
+        COMMA, // ,
+        RETURN_VALUE
 }
