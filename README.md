@@ -111,15 +111,19 @@ end
 ```
 class & struct
 ```
-class Point {
-  public:
-    x = 10;
-    int y = 20;
-}
-struct Point {
-x = 10;
-  int y = 20;
-}
+MyFunction:
+  \\ this is func or proc
+end
+
+public MyClass:
+  \\ this is class
+  private test = "test text"
+end
+
+private MyClass2:
+  \\ this is class
+  test = "test text"
+end
 ```
 types
 ```
