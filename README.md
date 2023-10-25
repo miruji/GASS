@@ -3,7 +3,7 @@ High-level script language for GAS
 
 ## Introduction
 
-So, this is my long-standing idea to write my own programming language. This is probably 5 or 7, I don’t know which attempt. However, most of all I thought about the concept and made repeated attempts to write something working in this regard. The gass concept does not involve the creation or use of byte and bit code machines or ready-made solutions. This is too dependent and expensive. In addition, I do not expect any performance gains using this development approach. During my time on archlinux, I really liked it and I thought it would be cool to have something productive for writing programs. Previously I would have used C++, now I would use Java, however, I don't think they fit my requirements. So I thought it would be a good idea to write a compiler for the language that would produce pure assembly code as output. This is the most productive work option in my opinion. Previously, I made such an attempt and wrote a compiler in Pascal, the language syntax was C-similar and gave nasm code. I got pretty discouraged after one Internet user told me about LLVM, but now I think that my path was really the right one. Over the past few years, I have only strengthened my programming skills. That's why this gass project exists, which involves creating a high-level scripting language for compiling and obtaining code in gas (GNU Assembler).
+*So, this is my long-standing idea to write my own programming language. This is probably 5 or 7, I don’t know which attempt. However, most of all I thought about the concept and made repeated attempts to write something working in this regard. The gass concept does not involve the creation or use of byte and bit code machines or ready-made solutions. This is too dependent and expensive. In addition, I do not expect any performance gains using this development approach. During my time on archlinux, I really liked it and I thought it would be cool to have something productive for writing programs. Previously I would have used C++, now I would use Java, however, I don't think they fit my requirements. So I thought it would be a good idea to write a compiler for the language that would produce pure assembly code as output. This is the most productive work option in my opinion. Previously, I made such an attempt and wrote a compiler in Pascal, the language syntax was C-similar and gave nasm code. I got pretty discouraged after one Internet user told me about LLVM, but now I think that my path was really the right one. Over the past few years, I have only strengthened my programming skills. That's why this gass project exists, which involves creating a high-level scripting language for compiling and obtaining code in gas (GNU Assembler).*
 
 Java will be used to develop the compiler, since it is cross-platform, low-cost and better suited for this task.
 The working process is as follows:
@@ -18,11 +18,9 @@ Thus, the initial core of libraries and functionality will be written in gas, wi
 Therefore, assistance to the project is welcome; when modifying, take into account the GPL3 license under which both GAS itself and this gass project are distributed.
 
 ## Syntax template
-global function
+Global function
+> In case of implicit type specification for func or proc compiler will check the expected return and operations that  are addressed to the code block name
 ```
-\\ in case of implicit type specification for func || proc
-\\ compiler will check the expected return and operations that are addressed to the code block name
-
 proc test:
 end
 \\ or
@@ -30,9 +28,8 @@ test:
 end
 ```
 global procedure
+> Compiler exception: the main function will automatically turn return 0 if return was not specified
 ```
-\\ compiler exception: the main function will automatically turn return 0 if return was not specified.
-
 func test:
   return 0;
 end
@@ -42,10 +39,8 @@ test:
 end
 ```
 local func & proc rule
+> Local or otherwise temporary func or proc are used as areas for stubs, or code for variables, etc. if no need to go beyond a certain section of code
 ```
-\\ local or otherwise temporary func || proc are used as areas for stubs, or code for variables, etc. 
-\\ if no need to go beyond a certain section of code
-
 proc test:
   a = :
     return 10
@@ -77,9 +72,8 @@ proc test:
 end
 ```
 func & proc parameters
+> Parameters can be omitted for global func and proc
 ```
-\\ parameters can be omitted for global func & proc
-
 func main()
 \\ or
 func main
@@ -93,9 +87,8 @@ local in global ->> yes
 local in local ->> yes
 ```
 if & switch
+> As before, we use the usual temporary sections of code : end
 ```
-\\ as before, we use the usual temporary sections of code : end
-
 a = 10
 if (a == 10):
 end
@@ -120,7 +113,8 @@ end
 dowhile(true): \\ template to:do:
 end
 ```
-class & struct
+classes
+> Thus classes are designed for OOP and wrapping global functions and variables into objects. Access is regulated by private and public flags both when declaring a class and internally for specific elements
 ```
 MyFunction:
   \\ this is func or proc
@@ -135,20 +129,12 @@ private MyClass2:
   \\ this is class
   test = "test text"
 end
-
-\*
-thus classes are designed for OOP and wrapping global functions and variables into objects.
-access is regulated by private and public flags both when declaring a class and internally for specific elements.
-*\
 ```
 types & variables
+> All types are expected to be used as in gas. This should give more control when needed
 ```
-\\ all types are expected to be used as in gas
-
 a = "Hello!"
 string a = "Hello!"
-
-\\ this should give more control when needed
 ```
 gas code
 ```
