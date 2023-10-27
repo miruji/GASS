@@ -4,14 +4,27 @@ import gass.tokenizer.Token;
 import gass.tokenizer.TokenType;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class Parser {
     public ArrayList<Token> tokens;
     public Parser(ArrayList<Token> tokens) {
         this.tokens = tokens;
 
+        deleteBLockEnline();
         parseAllBracket();
         parseBlock(tokens, TokenType.BLOCK_BEGIN, TokenType.END);
+    }
+    void deleteBLockEnline() {
+        for (int i = 0; i+1 < tokens.size(); i++) {
+            TokenType type = tokens.get(i).type;
+            if ((type == TokenType.BLOCK_BEGIN || type == TokenType.CIRCLE_BLOCK_BEGIN ||
+                    type == TokenType.SQUARE_BLOCK_BEGIN || type == TokenType.FIGURE_BLOCK_BEGIN) &&
+                tokens.get(i+1).type == TokenType.ENDLINE) {
+                tokens.remove(i+1);
+                i--;
+            }
+        }
     }
     void parseAllBracket() {
         parseBlock(tokens, TokenType.CIRCLE_BLOCK_BEGIN, TokenType.CIRCLE_BLOCK_END);
@@ -33,33 +46,19 @@ public class Parser {
         parseBlock(tokens, TokenType.FIGURE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_END);
     }
     void parseBlock(ArrayList<Token> tokens, TokenType beginType, TokenType endType) {
-        ArrayList<Integer> blocks = new ArrayList<>();
-        //int length = 0;
+        Stack<Integer> blocks = new Stack<>();
+
         for (int i = 0; i < tokens.size(); i++) {
             if (tokens.get(i).type == beginType) {
-                //length++;
-                //System.out.println("BEG "+i+" LEN "+length);
-
-                blocks.add(i);
-            } else
-            if (tokens.get(i).type == endType) {
-                //length--;
-                //System.out.println("END "+i+" LEN "+length+" BLO "+blocks.toString());
-
-                int lastBlock = blocks.size()-1;
-                if (lastBlock-1 >= 0) {
-                    //System.out.println( blocks.get(lastBlock-1) + ": " + blocks.get(lastBlock) );
-                    tokens.get( blocks.get(lastBlock-1) ).addChildren( tokens.get(blocks.get(lastBlock)) );
-                    tokens.remove(blocks.get(lastBlock).intValue());
-                    i--;
-                }
-                blocks.remove(lastBlock);
-
+                blocks.push(i);
+            } else if (tokens.get(i).type == endType) {
+                if (!blocks.isEmpty())
+                    blocks.pop();
                 tokens.remove(i);
                 i--;
-            } else
-            if (!blocks.isEmpty()) {
-                tokens.get( blocks.get(blocks.size()-1) ).addChildren( new Token(tokens.get(i).word, tokens.get(i).type, tokens.get(i).childrens) );
+            } else if (!blocks.isEmpty()) {
+                int lastBlockIndex = blocks.peek();
+                tokens.get(lastBlockIndex).addChildren(new Token(tokens.get(i).word, tokens.get(i).type, tokens.get(i).childrens));
                 tokens.remove(i);
                 i--;
             }

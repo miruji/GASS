@@ -40,48 +40,14 @@ public class Main {
         Parser parser = new Parser(tokenizer.tokens);
         tokenizer = null;
 
-        /*
         outputBuffer = new StringBuilder("Parser output: [\n");
         for (Token token : parser.tokens) {
-            if (token.word != null)
-                outputBuffer.append("    [").append(token.type).append("]: [").append(token.word).append("]");
-            else
-                outputBuffer.append("    [").append(token.type).append("]");
-
-            if (token.childrens != null)
-                outputBuffer.append(" childrens: ").append(token.childrens.toString());
-            outputBuffer.append("\n");
-        }
-        new Log(LogType.info, outputBuffer.append("] \n").toString());
-         */
-
-        /*
-        outputBuffer = new StringBuilder("Parser output: [\n");
-        for (Token token : parser.tokens) {
-            outputBuffer.append("\t[");
-            if (token.word != null) {
-                outputBuffer.append(token.type).append("]: [").append(token.word).append("]");
-            } else {
-                outputBuffer.append(token.type).append("]");
-            }
-
-            if (token.childrens != null) {
-                for (Token child : token.childrens) {
-                    outputBuffer.append("\n\t\t [").append(child.type).append("]: [").append(child.word).append("]");
-                }
-            }
-            outputBuffer.append("\n");
-        }
-        new Log(LogType.info, outputBuffer.append("] \n").toString());
-         */
-        outputBuffer = new StringBuilder("Parser output: [\n");
-        for (Token token : parser.tokens) {
-            outputBuffer.append(printTokenWithChildren(token, 1));
+            outputBuffer.append(printTokensTree(token, 1));
         }
         new Log(LogType.info, outputBuffer.append("] \n").toString());
     }
     // Рекурсивная функция для вывода токенов и их детей
-    public static String printTokenWithChildren(Token token, int depth) {
+    public static String printTokensTree(Token token, int depth) {
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < depth; i++) {
             output.append("\t");
@@ -95,7 +61,7 @@ public class Main {
         if (token.childrens != null) {
 
             for (Token child : token.childrens) {
-                output.append(printTokenWithChildren(child, depth+1));
+                output.append(printTokensTree(child, depth+1));
             }
         }
         return output.toString();
