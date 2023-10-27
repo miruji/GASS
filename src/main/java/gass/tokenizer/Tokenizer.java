@@ -7,89 +7,74 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Tokenizer {
-    public final ArrayList<Token> tokens;
-    private int counter = 0;
-    private final String input;
-    private final int inputLength;
+    public final ArrayList<Token> tokens; // tokenizer output tokens
+    private int counter = 0;              // circle counter
+    private final String input;           // tokenizer input text
+    private final int inputLength;        // save input text length
     public Tokenizer(String input) {
-        // read tokens
+        //
         tokens = new ArrayList<>();
         this.input = input;
         this.inputLength = input.length();
 
+        // main read cycle
         while (counter < inputLength) {
             if ( !deleteComments() )
-            if ( !addToken(getQuotes('`'), TokenType.BACK_QUOTE) )
-            if ( !addToken(getQuotes('"'), TokenType.DOUBLE_QUOTE) )
-            if ( !addToken(getQuotes('\''), TokenType.SINGLE_QUOTE) )
-            if ( !addToken(getFloatNumber(), TokenType.FLOAT) )
-            if ( !addToken(getNumber(), TokenType.NUMBER) )
-            if ( !addToken(getWord(), TokenType.WORD) )
-            if ( !addToken(getLogicalOperator(), TokenType.NONE) )
-            if ( !addToken(getMathOperator(), TokenType.NONE) )
+            if ( !addToken(getQuotes('`'), TokenType.BACK_QUOTE) )    // read ` quote
+            if ( !addToken(getQuotes('"'), TokenType.DOUBLE_QUOTE) )  // read " quote
+            if ( !addToken(getQuotes('\''), TokenType.SINGLE_QUOTE) ) // read ' quote
+            if ( !addToken(getFloatNumber(), TokenType.FLOAT) )       // read float 0.0 or .0
+            if ( !addToken(getNumber(), TokenType.NUMBER) )           // read number
+            if ( !addToken(getWord(), TokenType.WORD) )               // read word
+            if ( !addToken(getLogicalOperator(), TokenType.NONE) )    // read logical (double) -> next set new type
+            if ( !addToken(getMathOperator(), TokenType.NONE) )       // read math (double) -> next set new type
                 {
+                // next read single chars
                 char c = input.charAt(counter);
-                //
-                if (c == '\u001F' && tokens.isEmpty())
-                    counter++;
+                if (c == '\u001F' && tokens.isEmpty()) counter++;
                 else {
                     if (c == '\u001F' && tokens.get(tokens.size()-1).type != TokenType.ENDLINE)
                         addToken(" ", TokenType.ENDLINE);
                     else
                     // single math
-                    if (c == '+')
-                        addToken(" ", TokenType.PLUS);
+                    if (c == '+') addToken(" ", TokenType.PLUS);
                     else
-                    if (c == '-')
-                        addToken(" ", TokenType.MINUS);
+                    if (c == '-') addToken(" ", TokenType.MINUS);
                     else
-                    if (c == '*')
-                        addToken(" ", TokenType.MULTIPLY);
+                    if (c == '*') addToken(" ", TokenType.MULTIPLY);
                     else
-                    if (c == '/')
-                        addToken(" ", TokenType.DEVIDE);
+                    if (c == '/') addToken(" ", TokenType.DEVIDE);
                     else
-                    if (c == '=')
-                        addToken(" ", TokenType.EQUAL);
+                    if (c == '=') addToken(" ", TokenType.EQUAL);
                     else
-                    if (c == '%')
-                        addToken(" ", TokenType.MODULO);
+                    if (c == '%') addToken(" ", TokenType.MODULO);
                     else
                     // single logical
-                    if (c == '?')
-                        addToken(" ", TokenType.QUESTION);
+                    if (c == '?') addToken(" ", TokenType.QUESTION);
                     else
-                    if (c == '!')
-                        addToken(" ", TokenType.NOT);
+                    if (c == '!') addToken(" ", TokenType.NOT);
                     else
                     // brackets
-                    if (c == '(')
-                        addToken(" ", TokenType.CIRCLE_BLOCK_BEGIN);
+                    if (c == '(') addToken(" ", TokenType.CIRCLE_BLOCK_BEGIN);
                     else
-                    if (c == ')')
-                        addToken(" ", TokenType.CIRCLE_BLOCK_END);
+                    if (c == ')') addToken(" ", TokenType.CIRCLE_BLOCK_END);
                     else
-                    if (c == '{')
-                        addToken(" ", TokenType.FIGURE_BLOCK_BEGIN);
+                    if (c == '{') addToken(" ", TokenType.FIGURE_BLOCK_BEGIN);
                     else
-                    if (c == '}')
-                        addToken(" ", TokenType.FIGURE_BLOCK_END);
+                    if (c == '}') addToken(" ", TokenType.FIGURE_BLOCK_END);
                     else
-                    if (c == '[')
-                        addToken(" ", TokenType.SQUARE_BLOCK_BEGIN);
+                    if (c == '[') addToken(" ", TokenType.SQUARE_BLOCK_BEGIN);
                     else
-                    if (c == ']')
-                        addToken(" ", TokenType.SQUARE_BLOCK_END);
+                    if (c == ']') addToken(" ", TokenType.SQUARE_BLOCK_END);
                     else
                     //
-                    if (c == ':')
-                        addToken(" ", TokenType.BLOCK_BEGIN);
+                    if (c == ':') addToken(" ", TokenType.BLOCK_BEGIN);
                     else
-                    if (c == ',')
-                        addToken(" ", TokenType.COMMA);
+                    if (c == ';') addToken(" ", TokenType.ENDLINE);
                     else
-                    if (c == ';')
-                        addToken(" ", TokenType.ENDLINE);
+                    if (c == ',') addToken(" ", TokenType.COMMA);
+                    else
+                    if (c == '.') addToken(" ", TokenType.DOT);
                     counter++;
                 }
             }
@@ -97,79 +82,61 @@ public class Tokenizer {
         }
         new Log(LogType.info,"Tokens size: "+tokens.size());
     }
-    private boolean addToken(String token, TokenType type) {
-        if (!token.isEmpty()) {
-            if (token.equals(" ")) token = null;
+    /** add new tokens if no empty / if == " " then set new type */
+    private boolean addToken(String data, TokenType type) {
+        if (!data.isEmpty()) {
+            if (data.equals(" ")) data = null;
 
             // preparser rename types
             if (type == TokenType.WORD) {
-                if (Objects.equals(token, "end"))
-                    type = TokenType.END;
+                if (Objects.equals(data, "end")) type = TokenType.END;
                 else
-                if (Objects.equals(token, "return"))
-                    type = TokenType.RETURN_VALUE;
+                if (Objects.equals(data, "return")) type = TokenType.RETURN_VALUE;
                 else
-                if (Objects.equals(token, "func"))
-                    type = TokenType.FUNCTION;
+                if (Objects.equals(data, "func")) type = TokenType.FUNCTION;
                 else
-                if (Objects.equals(token, "proc"))
-                    type = TokenType.PROCEDURE;
+                if (Objects.equals(data, "proc")) type = TokenType.PROCEDURE;
                 else
-                if (Objects.equals(token, "private"))
-                    type = TokenType.PRIVATE;
+                if (Objects.equals(data, "private")) type = TokenType.PRIVATE;
                 else
-                if (Objects.equals(token, "public"))
-                    type = TokenType.PUBLIC;
+                if (Objects.equals(data, "public")) type = TokenType.PUBLIC;
                 else
-                if (Objects.equals(token, "enum"))
-                    type = TokenType.ENUM;
+                if (Objects.equals(data, "enum")) type = TokenType.ENUM;
 
-                if (type != TokenType.WORD)
-                    token = null;
+                if (type != TokenType.WORD) data = null;
             } else
             if (type == TokenType.NONE) {
                 // double math
-                if (Objects.equals(token, "++"))
-                    type = TokenType.INCREMENT;
+                if (Objects.equals(data, "++")) type = TokenType.INCREMENT;
                 else
-                if (Objects.equals(token, "+="))
-                    type = TokenType.PLUS_EQUALS;
+                if (Objects.equals(data, "+=")) type = TokenType.PLUS_EQUALS;
                 else
-                if (Objects.equals(token, "--"))
-                    type = TokenType.DECREMENT;
+                if (Objects.equals(data, "--")) type = TokenType.DECREMENT;
                 else
-                if (Objects.equals(token, "-="))
-                    type = TokenType.MINUS_EQUALS;
+                if (Objects.equals(data, "-=")) type = TokenType.MINUS_EQUALS;
                 else
-                if (Objects.equals(token, "*="))
-                    type = TokenType.MULTIPLY_EQUALS;
+                if (Objects.equals(data, "*=")) type = TokenType.MULTIPLY_EQUALS;
                 else
-                if (Objects.equals(token, "/="))
-                    type = TokenType.DIVIDE_EQUALS;
+                if (Objects.equals(data, "/=")) type = TokenType.DIVIDE_EQUALS;
                 else
                 // double logical
-                if (Objects.equals(token, "!="))
-                    type = TokenType.NOT_EQUAL;
+                if (Objects.equals(data, "!=")) type = TokenType.NOT_EQUAL;
                 else
-                if (Objects.equals(token, "=="))
-                    type = TokenType.DOUBLE_EQUAL;
+                if (Objects.equals(data, "==")) type = TokenType.DOUBLE_EQUAL;
                 else
-                if (Objects.equals(token, "&&"))
-                    type = TokenType.AND;
+                if (Objects.equals(data, "&&")) type = TokenType.AND;
                 else
-                if (Objects.equals(token, "||"))
-                    type = TokenType.OR;
+                if (Objects.equals(data, "||")) type = TokenType.OR;
 
-                if (type != TokenType.NONE)
-                    token = null;
+                if (type != TokenType.NONE) data = null;
             }
-
             //
-            tokens.add(new Token(token, type));
+            tokens.add(new Token(data, type));
             return true;
         }
         return false;
     }
+    /** delete \**\ (double) and \\ (single) comments */
     private boolean deleteComments() {
         if (input.charAt(counter) == '\\') {
             if (counter+1 >= inputLength) return true;
@@ -197,6 +164,7 @@ public class Tokenizer {
         }
         return false;
     }
+    /** get quote ` and " and ' */
     private String getQuotes(char quote) { // get quotes `/"/'
         if (input.charAt(counter) == quote) {
             if (counter+1 >= inputLength) new Log(LogType.error,"[Tokenizer]: Quote was not closed at the end");
@@ -231,6 +199,7 @@ public class Tokenizer {
         }
         return "";
     }
+    /** get float 0.0 and .0 */
     private String getFloatNumber() {
         StringBuilder result = new StringBuilder();
         boolean dot = false;
@@ -256,6 +225,7 @@ public class Tokenizer {
         }
         return "";
     }
+    /** get number */
     private String getNumber() {
         StringBuilder result = new StringBuilder();
 
@@ -269,6 +239,7 @@ public class Tokenizer {
 
         return result.toString();
     }
+    /** get word */
     private String getWord() {
         StringBuilder result = new StringBuilder();
 
@@ -285,6 +256,7 @@ public class Tokenizer {
 
         return result.toString();
     }
+    /** get double math operator */
     private String getMathOperator() {
         if (counter+1 >= inputLength) return "";
 
@@ -303,6 +275,7 @@ public class Tokenizer {
         if (!result.isEmpty()) counter+=2;
         return result;
     }
+    /** get double logical operator */
     private String getLogicalOperator() {
         if (counter+1 >= inputLength) return "";
 

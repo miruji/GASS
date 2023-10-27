@@ -1,5 +1,6 @@
 package gass.tokenizer;
 
+/** Token types */
 public enum TokenType {
     // Tokenizer types
         // basic
@@ -56,5 +57,6 @@ public enum TokenType {
             PROCEDURE,
     // ~
         COMMA, // ,
-        RETURN_VALUE
+        DOT,   // .
+        RETURN_VALUE // return
 }

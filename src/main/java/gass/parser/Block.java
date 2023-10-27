@@ -2,6 +2,7 @@ package gass.parser;
 
 import gass.tokenizer.Token;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Block {
     public final String name;
@@ -18,5 +19,11 @@ public class Block {
         this.name = name;
         this.type = type;
         this.tokens = tokens;
+    }
+    /** find block by name */
+    public static boolean find(ArrayList<Block> blocks, String findName) {
+        for (Block b : blocks)
+            if (Objects.equals(b.name, findName)) return true;
+        return false;
     }
 }

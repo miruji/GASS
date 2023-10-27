@@ -14,18 +14,19 @@ public class Parser {
     public Parser(ArrayList<Token> tokens) {
         this.tokens = tokens;
 
-        deleteBLockEnline();
-        parseAllBracket();
-        parseBeginEnd(tokens, TokenType.BLOCK_BEGIN, TokenType.END);
+        deleteBlockEndline(); // :e (e [e {e ENDe
+        parseAllBracket();    // () ->> [] ->> {}
+        parseBlock(tokens, TokenType.BLOCK_BEGIN, TokenType.END); // : end
 
-        parseEnum();
-        parseClass();
-        parseBlock();
+        parseEnum();  // enum
+        parseClass(); // public/private class
+        parseBlock(); // func/proc/none global block
     }
-    void deleteBLockEnline() {
+    /** delete e (endline token) :e (e [e {e ENDe */
+    void deleteBlockEndline() {
         for (int i = 0; i+1 < tokens.size(); i++) {
-            TokenType type = tokens.get(i).type;
             if (tokens.get(i+1).type == TokenType.ENDLINE) {
+                TokenType type = tokens.get(i).type;
                 if (type == TokenType.END) {
                     tokens.remove(i+1);
                     i--;
@@ -39,44 +40,52 @@ public class Parser {
             //
         }
     }
+    /** parse () ->> [] ->> {} brackets */
     void parseAllBracket() {
-        parseBeginEnd(tokens, TokenType.CIRCLE_BLOCK_BEGIN, TokenType.CIRCLE_BLOCK_END);
-        parseArrayBracket(tokens);
-        parseClassBracket(tokens);
+        parseBlock(tokens, TokenType.CIRCLE_BLOCK_BEGIN, TokenType.CIRCLE_BLOCK_END);
+        parseFigureBracket(tokens);
+        parseSquareBracket(tokens);
     }
-    void parseArrayBracket(ArrayList<Token> tokens) {
+    /** parse [] brackets */
+    void parseSquareBracket(ArrayList<Token> tokens) {
         for (Token token : tokens) {
             if (token.childrens != null)
-                parseArrayBracket(token.childrens);
+                parseSquareBracket(token.childrens);
         }
-        parseBeginEnd(tokens, TokenType.SQUARE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_END);
+        parseBlock(tokens, TokenType.SQUARE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_END);
     }
-    void parseClassBracket(ArrayList<Token> tokens) {
+    /** parse {} brackets */
+    void parseFigureBracket(ArrayList<Token> tokens) {
         for (Token token : tokens) {
             if (token.childrens != null)
-                parseClassBracket(token.childrens);
+                parseFigureBracket(token.childrens);
         }
-        parseBeginEnd(tokens, TokenType.FIGURE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_END);
+        parseBlock(tokens, TokenType.FIGURE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_END);
     }
-    void parseBeginEnd(ArrayList<Token> tokens, TokenType beginType, TokenType endType) {
+    /** parse block BEGIN -> END */
+    void parseBlock(ArrayList<Token> tokens, TokenType beginType, TokenType endType) {
         Stack<Integer> blocks = new Stack<>();
-
         for (int i = 0; i < tokens.size(); i++) {
-            if (tokens.get(i).type == beginType) {
+            if (tokens.get(i).type == beginType) {      // begin
                 blocks.push(i);
-            } else if (tokens.get(i).type == endType) {
-                if (!blocks.isEmpty()) blocks.pop();
+            } else if (tokens.get(i).type == endType) { // end
+                int lastBlock = blocks.size()-2;
+                if (lastBlock >= 0) {
+                    tokens.get( blocks.get(lastBlock) ).addChildren( tokens.get(blocks.peek()) );
+                    tokens.remove( blocks.peek().intValue() );
+                    i--;
+                }
+                blocks.pop();
                 tokens.remove(i);
                 i--;
-            } else if (!blocks.isEmpty()) {
-                int lastBlockIndex = blocks.peek();
-                tokens.get(lastBlockIndex).addChildren(new Token(tokens.get(i).word, tokens.get(i).type, tokens.get(i).childrens));
+            } else if (!blocks.isEmpty()) { // add new childrens to token
+                tokens.get(blocks.peek()).addChildren(new Token(tokens.get(i).word, tokens.get(i).type, tokens.get(i).childrens));
                 tokens.remove(i);
                 i--;
             }
         }
-        //
     }
+    /** parse enum block */
     void parseEnum() {
         for (int i = 0; i+2 < tokens.size(); i++) {
             Token token2 = tokens.get(i+1);
@@ -90,6 +99,7 @@ public class Parser {
             }
         }
     }
+    /** parse class block (public/private) */
     void parseClass() {
         for (int i = 0; i+2 < tokens.size(); i++) {
             Token token2 = tokens.get(i+1);
@@ -110,6 +120,7 @@ public class Parser {
             }
         }
     }
+    /** parse block (func/proc/none) */
     void parseBlock() {
         for (int i = 0; i+1 < tokens.size(); i++) {
             // type

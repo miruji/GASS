@@ -23,6 +23,7 @@ public class Token {
         for (Token children : childrens)
             addChildren(children);
     }
+    /** tokens tree output */
     public static String printChildrens(Token token, int depth) {
         StringBuilder output = new StringBuilder();
         output.append("\t".repeat(Math.max(0, depth)));
