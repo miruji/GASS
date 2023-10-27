@@ -1,4 +1,4 @@
-package gass.Tokenizer;
+package gass.tokenizer;
 
 public enum TokenType {
     // Tokenizer types
@@ -36,14 +36,14 @@ public enum TokenType {
             OR,           // ||
     // Parser types
         // parameter
-            PARAMETER_BEGIN, // (
-            PARAMETER_END,   // )
+            CIRCLE_BLOCK_BEGIN, // (
+            CIRCLE_BLOCK_END,   // )
         // array
-            ARRAY_BEGIN, // [
-            ARRAY_END,   // ]
+            SQUARE_BLOCK_BEGIN, // [
+            SQUARE_BLOCK_END,   // ]
         // class
-            CLASS_BEGIN, // {
-            CLASS_END,   // }
+            FIGURE_BLOCK_BEGIN, // {
+            FIGURE_BLOCK_END,   // }
             PRIVATE,     // private
             PUBLIC,      // public
         // block

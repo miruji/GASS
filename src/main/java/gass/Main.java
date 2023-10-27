@@ -1,7 +1,8 @@
 package gass;
 
-import gass.Tokenizer.Token;
-import gass.Tokenizer.Tokenizer;
+import gass.parser.Parser;
+import gass.tokenizer.Token;
+import gass.tokenizer.Tokenizer;
 import gass.io.fs.File;
 import gass.io.log.Log;
 import gass.io.log.LogType;
@@ -26,13 +27,78 @@ public class Main {
         // tokenizer
         Tokenizer tokenizer = new Tokenizer(openFile);
 
-        StringBuilder tokensStr = new StringBuilder("Tokenizer output: [\n");
+        StringBuilder outputBuffer = new StringBuilder("Tokenizer output: [\n");
         for (Token token : tokenizer.tokens) {
             if (token.word != null)
-                tokensStr.append("    [").append(token.type).append("]: [").append(token.word).append("]\n");
+                outputBuffer.append("    [").append(token.type).append("]: [").append(token.word).append("]\n");
             else
-                tokensStr.append("    [").append(token.type).append("]\n");
+                outputBuffer.append("    [").append(token.type).append("]\n");
         }
-        new Log(LogType.info, tokensStr.append("] \n").toString());
+        new Log(LogType.info, outputBuffer.append("] \n").toString());
+
+        // parser
+        Parser parser = new Parser(tokenizer.tokens);
+        tokenizer = null;
+
+        /*
+        outputBuffer = new StringBuilder("Parser output: [\n");
+        for (Token token : parser.tokens) {
+            if (token.word != null)
+                outputBuffer.append("    [").append(token.type).append("]: [").append(token.word).append("]");
+            else
+                outputBuffer.append("    [").append(token.type).append("]");
+
+            if (token.childrens != null)
+                outputBuffer.append(" childrens: ").append(token.childrens.toString());
+            outputBuffer.append("\n");
+        }
+        new Log(LogType.info, outputBuffer.append("] \n").toString());
+         */
+
+        /*
+        outputBuffer = new StringBuilder("Parser output: [\n");
+        for (Token token : parser.tokens) {
+            outputBuffer.append("\t[");
+            if (token.word != null) {
+                outputBuffer.append(token.type).append("]: [").append(token.word).append("]");
+            } else {
+                outputBuffer.append(token.type).append("]");
+            }
+
+            if (token.childrens != null) {
+                for (Token child : token.childrens) {
+                    outputBuffer.append("\n\t\t [").append(child.type).append("]: [").append(child.word).append("]");
+                }
+            }
+            outputBuffer.append("\n");
+        }
+        new Log(LogType.info, outputBuffer.append("] \n").toString());
+         */
+        outputBuffer = new StringBuilder("Parser output: [\n");
+        for (Token token : parser.tokens) {
+            outputBuffer.append(printTokenWithChildren(token, 1));
+        }
+        new Log(LogType.info, outputBuffer.append("] \n").toString());
     }
+    // Рекурсивная функция для вывода токенов и их детей
+    public static String printTokenWithChildren(Token token, int depth) {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            output.append("\t");
+        }
+
+        if (token.word != null)
+            output.append("[").append(token.type).append("]: [").append(token.word).append("]\n");
+        else
+            output.append("[").append(token.type).append("]\n");
+
+        if (token.childrens != null) {
+
+            for (Token child : token.childrens) {
+                output.append(printTokenWithChildren(child, depth+1));
+            }
+        }
+        return output.toString();
+    }
+
 }

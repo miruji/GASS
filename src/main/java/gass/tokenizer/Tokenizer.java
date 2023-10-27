@@ -1,4 +1,4 @@
-package gass.Tokenizer;
+package gass.tokenizer;
 
 import gass.io.log.Log;
 import gass.io.log.LogType;
@@ -64,22 +64,22 @@ public class Tokenizer {
                     else
                     // brackets
                     if (c == '(')
-                        addToken(" ", TokenType.PARAMETER_BEGIN);
+                        addToken(" ", TokenType.CIRCLE_BLOCK_BEGIN);
                     else
                     if (c == ')')
-                        addToken(" ", TokenType.PARAMETER_END);
+                        addToken(" ", TokenType.CIRCLE_BLOCK_END);
                     else
                     if (c == '{')
-                        addToken(" ", TokenType.CLASS_BEGIN);
+                        addToken(" ", TokenType.FIGURE_BLOCK_BEGIN);
                     else
                     if (c == '}')
-                        addToken(" ", TokenType.CLASS_END);
+                        addToken(" ", TokenType.FIGURE_BLOCK_END);
                     else
                     if (c == '[')
-                        addToken(" ", TokenType.ARRAY_BEGIN);
+                        addToken(" ", TokenType.SQUARE_BLOCK_BEGIN);
                     else
                     if (c == ']')
-                        addToken(" ", TokenType.ARRAY_END);
+                        addToken(" ", TokenType.SQUARE_BLOCK_END);
                     else
                     //
                     if (c == ':')
@@ -196,7 +196,19 @@ public class Tokenizer {
                 char currentChar = input.charAt(counter);
                 result.append(currentChar);
                 if (currentChar == quote) {
-                    if (openSingleComment) {
+                    boolean noSlash = true;
+                    // check back slash of end quote
+                    if (input.charAt(counter-1) == '\\') {
+                        int backSlashCounter = 0;
+                        for (int i = counter-1; i >= 0; i--) {
+                            if (input.charAt(i) == '\\') backSlashCounter++;
+                            else break;
+                        }
+                        if (backSlashCounter % 2 == 1)
+                            noSlash = false;
+                    }
+                    //
+                    if (openSingleComment && noSlash) {
                         counter++;
                         return result.toString();
                     } else openSingleComment = true;
