@@ -1,5 +1,8 @@
 package gass;
 
+import gass.parser.Block;
+import gass.parser.Class;
+import gass.parser.Enum;
 import gass.parser.Parser;
 import gass.tokenizer.Token;
 import gass.tokenizer.Tokenizer;
@@ -27,7 +30,7 @@ public class Main {
         // tokenizer
         Tokenizer tokenizer = new Tokenizer(openFile);
 
-        StringBuilder outputBuffer = new StringBuilder("Tokenizer output: [\n");
+        StringBuilder outputBuffer;/* = new StringBuilder("Tokenizer output: [\n");
         for (Token token : tokenizer.tokens) {
             if (token.word != null)
                 outputBuffer.append("    [").append(token.type).append("]: [").append(token.word).append("]\n");
@@ -35,34 +38,49 @@ public class Main {
                 outputBuffer.append("    [").append(token.type).append("]\n");
         }
         new Log(LogType.info, outputBuffer.append("] \n").toString());
+        */
 
         // parser
         Parser parser = new Parser(tokenizer.tokens);
         tokenizer = null;
 
         outputBuffer = new StringBuilder("Parser output: [\n");
-        for (Token token : parser.tokens) {
-            outputBuffer.append(printTokensTree(token, 1));
+        for (Token t : parser.tokens) {
+            outputBuffer.append(Token.printChildrens(t, 1));
+        }
+        new Log(LogType.info, outputBuffer.append("] \n").toString());
+
+        // enums
+        outputBuffer = new StringBuilder("Enums: [\n");
+        for (Enum e : parser.enums) {
+            outputBuffer.append('\t').append(e.name).append(": [\n");
+            for (Token t : e.tokens) {
+                outputBuffer.append(Token.printChildrens(t, 2));
+            }
+            outputBuffer.append("\t}\n");
+        }
+        new Log(LogType.info, outputBuffer.append("] \n").toString());
+
+        // classes
+        outputBuffer = new StringBuilder("Classes: [\n");
+        for (Class c : parser.classes) {
+            outputBuffer.append('\t').append(c.type.toString()).append(' ').append(c.name).append(": [\n");
+            for (Token t : c.tokens) {
+                outputBuffer.append(Token.printChildrens(t, 2));
+            }
+            outputBuffer.append("\t}\n");
+        }
+        new Log(LogType.info, outputBuffer.append("] \n").toString());
+
+        // global functions
+        outputBuffer = new StringBuilder("Global blocks: [\n");
+        for (Block b : parser.blocks) {
+            outputBuffer.append('\t').append(b.type.toString()).append(' ').append(b.name).append(": [\n");
+            for (Token t : b.tokens) {
+                outputBuffer.append(Token.printChildrens(t, 2));
+            }
+            outputBuffer.append("\t}\n");
         }
         new Log(LogType.info, outputBuffer.append("] \n").toString());
     }
-    // Рекурсивная функция для вывода токенов и их детей
-    public static String printTokensTree(Token token, int depth) {
-        StringBuilder output = new StringBuilder();
-        output.append("\t".repeat(Math.max(0, depth)));
-
-        if (token.word != null)
-            output.append("[").append(token.type).append("]: [").append(token.word).append("]\n");
-        else
-            output.append("[").append(token.type).append("]\n");
-
-        if (token.childrens != null) {
-
-            for (Token child : token.childrens) {
-                output.append(printTokensTree(child, depth+1));
-            }
-        }
-        return output.toString();
-    }
-
 }

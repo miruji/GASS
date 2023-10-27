@@ -46,9 +46,14 @@ public enum TokenType {
             FIGURE_BLOCK_END,   // }
             PRIVATE,     // private
             PUBLIC,      // public
+        // enum
+            ENUM,
         // block
             BLOCK_BEGIN, // :
             END,         // end
+        // function & procedure
+            FUNCTION,
+            PROCEDURE,
     // ~
         COMMA, // ,
         RETURN_VALUE

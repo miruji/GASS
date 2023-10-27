@@ -87,6 +87,9 @@ public class Tokenizer {
                     else
                     if (c == ',')
                         addToken(" ", TokenType.COMMA);
+                    else
+                    if (c == ';')
+                        addToken(" ", TokenType.ENDLINE);
                     counter++;
                 }
             }
@@ -103,14 +106,23 @@ public class Tokenizer {
                 if (Objects.equals(token, "end"))
                     type = TokenType.END;
                 else
+                if (Objects.equals(token, "return"))
+                    type = TokenType.RETURN_VALUE;
+                else
+                if (Objects.equals(token, "func"))
+                    type = TokenType.FUNCTION;
+                else
+                if (Objects.equals(token, "proc"))
+                    type = TokenType.PROCEDURE;
+                else
                 if (Objects.equals(token, "private"))
                     type = TokenType.PRIVATE;
                 else
                 if (Objects.equals(token, "public"))
                     type = TokenType.PUBLIC;
                 else
-                if (Objects.equals(token, "return"))
-                    type = TokenType.RETURN_VALUE;
+                if (Objects.equals(token, "enum"))
+                    type = TokenType.ENUM;
 
                 if (type != TokenType.WORD)
                     token = null;
