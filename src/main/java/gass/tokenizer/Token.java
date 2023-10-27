@@ -1,7 +1,6 @@
 package gass.tokenizer;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Token {
     public String word;

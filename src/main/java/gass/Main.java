@@ -49,9 +49,7 @@ public class Main {
     // Рекурсивная функция для вывода токенов и их детей
     public static String printTokensTree(Token token, int depth) {
         StringBuilder output = new StringBuilder();
-        for (int i = 0; i < depth; i++) {
-            output.append("\t");
-        }
+        output.append("\t".repeat(Math.max(0, depth)));
 
         if (token.word != null)
             output.append("[").append(token.type).append("]: [").append(token.word).append("]\n");
