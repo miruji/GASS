@@ -130,6 +130,13 @@ private MyClass2:
   test = "test text"
 end
 ```
+enum
+```
+enum testList:
+    TEST1 = "123"
+    TEST2 = "321"
+end
+```
 types & variables
 > All types are expected to be used as in gas. This should give more control when needed
 ```
