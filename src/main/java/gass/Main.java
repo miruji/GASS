@@ -46,16 +46,16 @@ public class Main {
 
         outputBuffer = new StringBuilder("Parser output: [\n");
         for (Token t : parser.tokens) {
-            outputBuffer.append(Token.printChildrens(t, 1));
+            outputBuffer.append(Token.outputChildrens(t, 1));
         }
         new Log(LogType.info, outputBuffer.append("] \n").toString());
 
         // enums
         outputBuffer = new StringBuilder("Enums: [\n");
         for (Enum e : parser.enums) {
-            outputBuffer.append('\t').append(e.name).append(": [\n");
+            outputBuffer.append("\t[").append(e.name).append("]: [\n");
             for (Token t : e.tokens) {
-                outputBuffer.append(Token.printChildrens(t, 2));
+                outputBuffer.append(Token.outputChildrens(t, 2));
             }
             outputBuffer.append("\t}\n");
         }
@@ -64,23 +64,19 @@ public class Main {
         // classes
         outputBuffer = new StringBuilder("Classes: [\n");
         for (Class c : parser.classes) {
-            outputBuffer.append('\t').append(c.type.toString()).append(' ').append(c.name).append(": [\n");
+            outputBuffer.append('\t').append(c.type.toString()).append(" [").append(c.name).append("]: [\n");
             for (Token t : c.tokens) {
-                outputBuffer.append(Token.printChildrens(t, 2));
+                outputBuffer.append(Token.outputChildrens(t, 2));
             }
             outputBuffer.append("\t}\n");
         }
         new Log(LogType.info, outputBuffer.append("] \n").toString());
 
         // global functions
-        outputBuffer = new StringBuilder("Global blocks: [\n");
+        outputBuffer = new StringBuilder("Global blocks:\n");
         for (Block b : parser.blocks) {
-            outputBuffer.append('\t').append(b.type.toString()).append(' ').append(b.name).append(": [\n");
-            for (Token t : b.tokens) {
-                outputBuffer.append(Token.printChildrens(t, 2));
-            }
-            outputBuffer.append("\t}\n");
+            outputBuffer.append(Block.outputLocalBlocks(b, 1, 0));
         }
-        new Log(LogType.info, outputBuffer.append("] \n").toString());
+        new Log(LogType.info, outputBuffer.toString());
     }
 }

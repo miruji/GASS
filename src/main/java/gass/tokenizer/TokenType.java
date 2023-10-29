@@ -54,7 +54,10 @@ public enum TokenType {
             END,         // end
         // function & procedure
             FUNCTION,
+            FUNCTION_ASSIGN,
             PROCEDURE,
+            PROCEDURE_ASSIGN,
+            NONE_ASSIGN,
     // ~
         COMMA, // ,
         DOT,   // .

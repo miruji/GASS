@@ -24,19 +24,18 @@ public class Token {
             addChildren(children);
     }
     /** tokens tree output */
-    public static String printChildrens(Token token, int depth) {
+    public static String outputChildrens(Token token, int depth) {
         StringBuilder output = new StringBuilder();
         output.append("\t".repeat(Math.max(0, depth)));
 
         if (token.word != null)
-            output.append("[").append(token.type).append("]: [").append(token.word).append("]\n");
+            output.append(token.type).append(" [").append(token.word).append("]\n");
         else
-            output.append("[").append(token.type).append("]\n");
+            output.append(token.type).append('\n');
 
         if (token.childrens != null) {
-
             for (Token child : token.childrens)
-                output.append(printChildrens(child, depth+1));
+                output.append(outputChildrens(child, depth+1));
         }
         return output.toString();
     }
