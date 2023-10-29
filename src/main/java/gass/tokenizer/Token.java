@@ -3,15 +3,15 @@ package gass.tokenizer;
 import java.util.ArrayList;
 
 public class Token {
-    public String word;
-    public TokenType type;
-    public ArrayList<Token> childrens;
-    public Token(String word, TokenType type) {
-        this.word = word;
+    public String data;                // word, block num ...
+    public TokenType type;             // type
+    public ArrayList<Token> childrens; // children tokens
+    public Token(String data, TokenType type) {
+        this.data = data;
         this.type = type;
     }
-    public Token(String word, TokenType type, ArrayList<Token> childrens) {
-        this.word = word;
+    public Token(String data, TokenType type, ArrayList<Token> childrens) {
+        this.data = data;
         this.type = type;
         this.childrens = childrens;
     }
@@ -28,8 +28,8 @@ public class Token {
         StringBuilder output = new StringBuilder();
         output.append("\t".repeat(Math.max(0, depth)));
 
-        if (token.word != null)
-            output.append(token.type).append(" [").append(token.word).append("]\n");
+        if (token.data != null)
+            output.append(token.type).append(" [").append(token.data).append("]\n");
         else
             output.append(token.type).append('\n');
 

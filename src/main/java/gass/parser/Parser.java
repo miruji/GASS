@@ -20,8 +20,8 @@ public class Parser {
 
         parseEnum();  // enum
         parseClass(); // public/private class
-        parseGlobalBlock(); // func/proc/none global block
-        parseLocalBlock(); // func/proc/name local block
+        parseGlobalBlock();   // func/proc/none global block
+        parseAllLocalBlock(); // func/proc/name local block
     }
     /** delete e (endline token) :e (e [e {e ENDe */
     void deleteBlockEndline() {
@@ -80,7 +80,7 @@ public class Parser {
                 tokens.remove(i);
                 i--;
             } else if (!blocks.isEmpty()) { // add new childrens to token
-                tokens.get(blocks.peek()).addChildren(new Token(tokens.get(i).word, tokens.get(i).type, tokens.get(i).childrens));
+                tokens.get(blocks.peek()).addChildren(new Token(tokens.get(i).data, tokens.get(i).type, tokens.get(i).childrens));
                 tokens.remove(i);
                 i--;
             }
@@ -92,7 +92,7 @@ public class Parser {
             Token token2 = tokens.get(i+1);
             Token token3 = tokens.get(i+2);
             if (tokens.get(i).type == TokenType.ENUM && token2.type == TokenType.WORD && token3.type == TokenType.BLOCK_BEGIN) {
-                enums.add(new Enum(token2.word, token3.childrens));
+                enums.add(new Enum(token2.data, token3.childrens));
                 tokens.remove(i); // enum
                 tokens.remove(i); // name
                 tokens.remove(i); // block
@@ -106,14 +106,14 @@ public class Parser {
             Token token2 = tokens.get(i+1);
             Token token3 = tokens.get(i+2);
             if (tokens.get(i).type == TokenType.PRIVATE && token2.type == TokenType.WORD && token3.type == TokenType.BLOCK_BEGIN) {
-                classes.add(new Class(token2.word, ClassType.PRIVATE, token3.childrens));
+                classes.add(new Class(token2.data, ClassType.PRIVATE, token3.childrens));
                 tokens.remove(i); // private/public
                 tokens.remove(i); // name
                 tokens.remove(i); // block
                 i--;
             } else
             if (tokens.get(i).type == TokenType.PUBLIC && token2.type == TokenType.WORD && token3.type == TokenType.BLOCK_BEGIN) {
-                classes.add(new Class(token2.word, ClassType.PUBLIC, token3.childrens));
+                classes.add(new Class(token2.data, ClassType.PUBLIC, token3.childrens));
                 tokens.remove(i); // private/public
                 tokens.remove(i); // name
                 tokens.remove(i); // block
@@ -145,7 +145,7 @@ public class Parser {
                 Token token3 = tokens.get(i+2);
                 if (token3.type == TokenType.BLOCK_BEGIN) {
                     // block with parameters
-                    blocks.add(new Block(tokens.get(i).word, type, token2.childrens, token3.childrens));
+                    blocks.add(new Block(tokens.get(i).data, type, token2.childrens, token3.childrens));
                     tokens.remove(i); // name
                     tokens.remove(i); // parameters
                     tokens.remove(i); // block
@@ -154,7 +154,7 @@ public class Parser {
             } else
             if (tokens.get(i).type == TokenType.WORD && token2.type == TokenType.BLOCK_BEGIN) {
                 // block with no parameters
-                blocks.add(new Block(tokens.get(i).word, type, token2.childrens));
+                blocks.add(new Block(tokens.get(i).data, type, token2.childrens));
                 tokens.remove(i); // name
                 tokens.remove(i); // block
                 i--;
@@ -162,57 +162,49 @@ public class Parser {
         }
         //
     }
-    /** parse local block proc/func/none */
-    void parseLocalBlock() {
-        for (int i = 0; i < blocks.size(); i++) {
-            System.out.println("name: "+blocks.get(i).name);
-            parseLocalBlock2(blocks.get(i), 1);
-        }
-        //
+    /** parse all local block proc/func/none */
+    void parseAllLocalBlock() {
+        for (Block block : blocks)
+            parseLocalBlock(block, 1);
     }
-    void parseLocalBlock2(Block block, int depth) {
-        if (block.tokens != null) // if no tokens => no local block
-        {
-        int assignNum = 0;
-        for (int i = 0; i < block.tokens.size(); i++) {
-            //System.out.println("\t".repeat(Math.max(0, depth))+"# "+block.tokens.get(i).type);
-            if (block.tokens.get(i).type == TokenType.BLOCK_BEGIN) {
-                BlockType newBlockType = BlockType.NONE;
-                if (block.tokens.get(i-1).type == TokenType.PROCEDURE)
-                    newBlockType = BlockType.PROCEDURE;
-                else
-                if (block.tokens.get(i-1).type == TokenType.FUNCTION)
-                    newBlockType = BlockType.FUNCTION;
+    /** cycle parse local block proc/func/none  */
+    void parseLocalBlock(Block block, int depth) {
+        if (block.tokens != null) { // if no tokens => no local block
+            int assignNum = 0;
 
-                //System.out.println("\t".repeat(Math.max(0, depth+1))+block.tokens.get(i).childrens.size());
-                Block newBlock = new Block(newBlockType, block.tokens.get(i).childrens);
-
-                if (newBlockType == BlockType.NONE) {
-                    //block.tokens.remove(i);
-                    //i--;
-                    block.tokens.get(i).type = TokenType.NONE_ASSIGN;
-                    block.tokens.get(i).word = "0";
-                    block.tokens.get(i).childrens = null;
-                } else {
-                    if (newBlockType == BlockType.PROCEDURE)
-                        block.tokens.get(i).type = TokenType.PROCEDURE_ASSIGN;
+            for (int i = 0; i < block.tokens.size(); i++) {
+                if (block.tokens.get(i).type == TokenType.BLOCK_BEGIN) {
+                    BlockType newBlockType = BlockType.NONE;
+                    if (block.tokens.get(i-1).type == TokenType.PROCEDURE)
+                        newBlockType = BlockType.PROCEDURE;
                     else
-                        block.tokens.get(i).type = TokenType.FUNCTION_ASSIGN;
-                    block.tokens.remove(i-1);
-                    //block.tokens.remove(i-1);
-                    i--;
-                    //i--;
+                    if (block.tokens.get(i-1).type == TokenType.FUNCTION)
+                        newBlockType = BlockType.FUNCTION;
 
-                    block.tokens.get(i).word = String.valueOf(assignNum);
-                    assignNum++;
-                    block.tokens.get(i).childrens = null;
+                    Block newBlock = new Block(newBlockType, block.tokens.get(i).childrens);
+
+                    if (newBlockType == BlockType.NONE) {
+                        block.tokens.get(i).type = TokenType.NONE_ASSIGN;
+                        block.tokens.get(i).data = "0";
+                        block.tokens.get(i).childrens = null;
+                    } else {
+                        if (newBlockType == BlockType.PROCEDURE)
+                            block.tokens.get(i).type = TokenType.PROCEDURE_ASSIGN;
+                        else
+                            block.tokens.get(i).type = TokenType.FUNCTION_ASSIGN;
+                        block.tokens.remove(i-1);
+                        i--;
+
+                        block.tokens.get(i).data = String.valueOf(assignNum);
+                        assignNum++;
+                        block.tokens.get(i).childrens = null;
+                    }
+
+                    parseLocalBlock(newBlock, depth+1);
+                    block.addLocalBlock(newBlock);
                 }
-
-                parseLocalBlock2(newBlock, depth+1);
-                block.addLocalBlock(newBlock);
-                //System.out.println("\t".repeat(Math.max(0, depth+1))+"<<<");
             }
-        }
+
         }
         //
     }
