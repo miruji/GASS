@@ -30,10 +30,10 @@ public class Main {
         // tokenizer
         Tokenizer tokenizer = new Tokenizer(openFile);
 
-        StringBuilder outputBuffer;/* = new StringBuilder("Tokenizer output: [\n");
+        StringBuilder outputBuffer; /* = new StringBuilder("Tokenizer output: [\n");
         for (Token token : tokenizer.tokens) {
-            if (token.word != null)
-                outputBuffer.append("    [").append(token.type).append("]: [").append(token.word).append("]\n");
+            if (token.data != null)
+                outputBuffer.append("    [").append(token.type).append("]: [").append(token.data).append("]\n");
             else
                 outputBuffer.append("    [").append(token.type).append("]\n");
         }

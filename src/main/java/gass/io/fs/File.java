@@ -22,14 +22,14 @@ public class File {
             reader.close();
             return result.toString();
         } catch (IOException e) {
-            new Log(LogType.error,"Unable to read file ["+openFilePath+']', LogFlag.stackTraceCallInfo);
+            new Log(LogType.error,"Unable to read file ["+openFilePath+']');
             return "";
         }
     }
     public static void stringToFile(String filePath, String content) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             writer.write(content);
-            new Log(LogType.info,"Content has been written to the file", LogFlag.none);
+            new Log(LogType.info,"Content has been written to the file");
         } catch (IOException e) {
             e.printStackTrace();
         }

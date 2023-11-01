@@ -17,7 +17,7 @@ public enum TokenType {
             PLUS,     // +
             MINUS,    // -
             MULTIPLY, // *
-            DEVIDE,   // /
+            DIVIDE,   // /
             EQUAL,    // =
             MODULO,   // %
         // double math
@@ -57,7 +57,7 @@ public enum TokenType {
             FUNCTION_ASSIGN,
             PROCEDURE,
             PROCEDURE_ASSIGN,
-            NONE_ASSIGN,
+            BLOCK_ASSIGN,
     // ~
         COMMA, // ,
         DOT,   // .

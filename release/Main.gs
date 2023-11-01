@@ -22,12 +22,7 @@ proc test:
   a = 10
   proc:
     b = 15
-    proc:
-      a += b
-    end
-  end
-  a = func:
-    return 10
+    a += b
   end
   \\ in this place no b variable
   println(a) \\ println 25
