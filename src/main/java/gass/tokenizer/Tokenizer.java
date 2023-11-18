@@ -78,12 +78,9 @@ public class Tokenizer {
     /** add new tokens if no empty / if == " " then set new type */
     private boolean addToken(String data, TokenizerTokenType type, boolean clearData) {
         if (!data.isEmpty()) {
-            if (data.equals(" ")) data = null;
-
             // preparser rename types
-            TokenType newType = Token.stringToType(data, type);
+            TokenType newType  = Token.stringToType(data, type);
             if (clearData) data = null;
-
             //
             tokens.add(new Token(data, newType));
             return true;
@@ -99,9 +96,8 @@ public class Tokenizer {
                 counter++;
                 while (counter < inputLength) {
                     counter++;
-                    if (input.charAt(counter) == '\u001F') {
+                    if (input.charAt(counter) == '\u001F')
                         return true;
-                    }
                 }
             } else
             if (input.charAt(counter+1) == '*') { // double comment
@@ -113,8 +109,7 @@ public class Tokenizer {
                         return true;
                     }
                 }
-            }
-            else return false;
+            } else return false;
         }
         return false;
     }

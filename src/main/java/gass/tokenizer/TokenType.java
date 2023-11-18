@@ -9,6 +9,8 @@ public enum TokenType {
             NUMBER,  // number
             FLOAT,   // float number
             ENDLINE, // endline
+            COMMA,   // ,
+            DOT,     // .
         // quotes
             BACK_QUOTE,   // `
             DOUBLE_QUOTE, // "
@@ -53,13 +55,12 @@ public enum TokenType {
             BLOCK_BEGIN, // :
             END,         // end
         // function & procedure
-            FUNCTION,
+            FUNCTION, // func
             FUNCTION_ASSIGN,
-            PROCEDURE,
+            PROCEDURE, // proc
             PROCEDURE_ASSIGN,
             BLOCK_ASSIGN,
-    // ~
-        COMMA, // ,
-        DOT,   // .
-        RETURN_VALUE // return
+            RETURN_VALUE, // return
+        // variable
+            VARIABLE_NAME,
 }

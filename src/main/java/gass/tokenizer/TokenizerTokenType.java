@@ -17,11 +17,11 @@ public enum TokenizerTokenType {
         SINGLE_QUOTE, // '
         DOUBLE_QUOTE, // "
     // block
-        BLOCK_BEGIN,
-        CIRCLE_BLOCK,
-        FIGURE_BLOCK,
-        SQUARE_BLOCK,
+        BLOCK_BEGIN, // :
+        CIRCLE_BLOCK, // ()
+        FIGURE_BLOCK, // {}
+        SQUARE_BLOCK, // []
     // ~
-        COMMA,
-        DOT,
+        COMMA, // ,
+        DOT,   // .
 }

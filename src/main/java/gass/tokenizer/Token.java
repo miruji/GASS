@@ -40,6 +40,13 @@ public class Token {
         if (type == TokenType.DOUBLE_EQUAL) return "==";
         if (type == TokenType.AND) return "&&";
         if (type == TokenType.OR) return "||";
+        // block
+        if (type == TokenType.CIRCLE_BLOCK_BEGIN) return "(";
+        if (type == TokenType.CIRCLE_BLOCK_END) return ")";
+        if (type == TokenType.FIGURE_BLOCK_BEGIN) return "{";
+        if (type == TokenType.FIGURE_BLOCK_END) return "}";
+        if (type == TokenType.SQUARE_BLOCK_BEGIN) return "[";
+        if (type == TokenType.SQUARE_BLOCK_END) return "]";
         //
         return "";
     }
@@ -100,12 +107,12 @@ public class Token {
         }
         else
         if (type == TokenizerTokenType.FIGURE_BLOCK) {
-            if (Objects.equals(data, "(")) return TokenType.FIGURE_BLOCK_BEGIN;
+            if (Objects.equals(data, "{")) return TokenType.FIGURE_BLOCK_BEGIN;
             else                              return TokenType.FIGURE_BLOCK_END;
         }
         else
         if (type == TokenizerTokenType.SQUARE_BLOCK) {
-            if (Objects.equals(data, "(")) return TokenType.SQUARE_BLOCK_BEGIN;
+            if (Objects.equals(data, "[")) return TokenType.SQUARE_BLOCK_BEGIN;
             else                              return TokenType.SQUARE_BLOCK_END;
         }
         else
@@ -142,5 +149,29 @@ public class Token {
                 output.append(outputChildrens(child, depth+1));
         }
         return output.toString();
+    }
+    /** tokens to string */
+    public static String tokensToString(ArrayList<Token> tokens, boolean readChildrens) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            result.append(Objects.requireNonNullElseGet(token.data, () -> typeToString(token.type)));
+            //
+            if (token.type != TokenType.CIRCLE_BLOCK_BEGIN && token.type != TokenType.FIGURE_BLOCK_BEGIN && token.type != TokenType.SQUARE_BLOCK_BEGIN && i+1 < tokens.size())
+            if (tokens.get(i+1).type != TokenType.CIRCLE_BLOCK_BEGIN && tokens.get(i+1).type != TokenType.FIGURE_BLOCK_BEGIN && tokens.get(i+1).type != TokenType.SQUARE_BLOCK_BEGIN &&
+                tokens.get(i+1).type != TokenType.CIRCLE_BLOCK_END && tokens.get(i+1).type != TokenType.FIGURE_BLOCK_END && tokens.get(i+1).type != TokenType.SQUARE_BLOCK_END)
+                result.append(' ');
+            //
+            if (readChildrens) {
+                // childrens
+                if (token.childrens != null)
+                    result.append( tokensToString(token.childrens, true) );
+                // add close
+                if (token.type == TokenType.CIRCLE_BLOCK_BEGIN) result.append(')');
+                else if (token.type == TokenType.FIGURE_BLOCK_BEGIN) result.append('}');
+                else if (token.type == TokenType.SQUARE_BLOCK_BEGIN) result.append(']');
+            }
+        }
+        return result.toString();
     }
 }

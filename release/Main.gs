@@ -17,8 +17,8 @@ func main():
   println(a-11111)
   \\ if return then auto return 0
 end
-*\
 proc test:
+  c = {}
   a = 10
   proc:
     b = 15
@@ -26,4 +26,13 @@ proc test:
   end
   \\ in this place no b variable
   println(a) \\ println 25
+end
+*\
+
+func b():
+  return 10
+end
+func main():
+  a = b()
+  println(a)
 end
