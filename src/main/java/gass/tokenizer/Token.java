@@ -1,23 +1,24 @@
 package gass.tokenizer;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Token {
     public String data;                // word, block num ...
     public TokenType type;             // type
     public ArrayList<Token> childrens; // children tokens
-    public Token(String data, TokenType type) {
+    public Token(final String data, final TokenType type) {
         this.data = data;
         this.type = type;
     }
-    public Token(String data, TokenType type, ArrayList<Token> childrens) {
+    public Token(final String data, final TokenType type, final ArrayList<Token> childrens) {
         this.data = data;
         this.type = type;
         this.childrens = childrens;
     }
     /** type to string */
-    public static String typeToString(TokenType type) {
+    public static String typeToString(final TokenType type) {
         // single math
         if (type == TokenType.PLUS) return "+";
         if (type == TokenType.MINUS) return "-";
@@ -51,7 +52,7 @@ public class Token {
         return "";
     }
     /** string to type. using pretype */
-    public static TokenType stringToType(String data, TokenizerTokenType type) {
+    public static TokenType stringToType(final String data, final TokenizerTokenType type) {
         // words
         if (type == TokenizerTokenType.NUMBER) return TokenType.NUMBER; else
         if (type == TokenizerTokenType.FLOAT)  return TokenType.FLOAT; else
@@ -125,17 +126,17 @@ public class Token {
         return TokenType.NONE;
     }
     /** add child token to this token */
-    public void addChildren(Token child) {
+    public void addChildren(final Token child) {
         if (childrens == null) childrens = new ArrayList<>();
         childrens.add(child);
     }
     /** add child tokens to this token */
-    public void addChildrens(ArrayList<Token> childrens) {
+    public void addChildrens(final ArrayList<Token> childrens) {
         for (Token children : childrens)
             addChildren(children);
     }
     /** tokens tree output */
-    public static String outputChildrens(Token token, int depth) {
+    public static String outputChildrens(final Token token, final int depth) {
         StringBuilder output = new StringBuilder();
         output.append("\t".repeat(Math.max(0, depth)));
 
@@ -151,19 +152,33 @@ public class Token {
         return output.toString();
     }
     /** tokens to string */
-    public static String tokensToString(ArrayList<Token> tokens, boolean readChildrens) {
+    public static String tokensToString(final ArrayList<Token> tokens, final boolean readChildrens) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < tokens.size(); i++) {
-            Token token = tokens.get(i);
-            result.append(Objects.requireNonNullElseGet(token.data, () -> typeToString(token.type)));
+            final Token token = tokens.get(i);
+            final TokenType type = token.type;
+
             //
-            if (token.type != TokenType.CIRCLE_BLOCK_BEGIN && token.type != TokenType.FIGURE_BLOCK_BEGIN && token.type != TokenType.SQUARE_BLOCK_BEGIN && i+1 < tokens.size())
-            if (tokens.get(i+1).type != TokenType.CIRCLE_BLOCK_BEGIN && tokens.get(i+1).type != TokenType.FIGURE_BLOCK_BEGIN && tokens.get(i+1).type != TokenType.SQUARE_BLOCK_BEGIN &&
-                tokens.get(i+1).type != TokenType.CIRCLE_BLOCK_END && tokens.get(i+1).type != TokenType.FIGURE_BLOCK_END && tokens.get(i+1).type != TokenType.SQUARE_BLOCK_END)
-                result.append(' ');
-            //
+            if (List.of(TokenType.BLOCK_ASSIGN, TokenType.FUNCTION_ASSIGN, TokenType.PROCEDURE_ASSIGN).contains(type) && i+1 < tokens.size())
+                // if no [a = b()]
+                if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains( tokens.get(i+1).type ))
+                    result.append("ASSIGN[");
+
+            result.append(token.data != null ? token.data : typeToString(type));
+
+            if (List.of(TokenType.BLOCK_ASSIGN, TokenType.FUNCTION_ASSIGN, TokenType.PROCEDURE_ASSIGN).contains(type))
+                if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains( tokens.get(i+1).type )) {
+                    result.append(']');
+                    continue;
+                }
+
+            // if no ( { [ or ) } ]
+            if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains(type) && i+1 < tokens.size())
+                if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN, TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END).contains( tokens.get(i+1).type ))
+                    result.append(' ');
+
+            // childrens
             if (readChildrens) {
-                // childrens
                 if (token.childrens != null)
                     result.append( tokensToString(token.childrens, true) );
                 // add close

@@ -42,7 +42,7 @@ public class Block {
         if (dependencyBlocks == null) dependencyBlocks = new ArrayList<>();
 
         // check exist
-        for (String d : dependencyBlocks) {
+        for (final String d : dependencyBlocks) {
             if (Objects.equals(d, dependencyBlock))
                 return;
         }
@@ -54,22 +54,24 @@ public class Block {
         if (variables == null) variables = new ArrayList<>();
 
         // check exist
-        for (Variable v : variables) {
-            if (Objects.equals(v.name, name))
-                new Log(LogType.error,"The ["+name+"] variable could not be created because it was already declared");
+        for (final Variable v : variables) {
+            if (Objects.equals(v.name, name)) {
+                v.value = value; // set new variable value
+                return;
+            }
         }
 
         variables.add( new Variable(name, value) );
     }
     /** find block by name */
     public static boolean find(ArrayList<Block> blocks, String findName) {
-        for (Block b : blocks)
+        for (final Block b : blocks)
             if (Objects.equals(b.name, findName)) return true;
         return false;
     }
     /** local blocks tree output */
     public static String outputLocalBlocks(Block block, int depth, int assignNum) {
-        StringBuilder output = new StringBuilder();
+        final StringBuilder output = new StringBuilder();
 
         // block info
         output.append("\t".repeat(Math.max(0, depth)));
@@ -82,36 +84,40 @@ public class Block {
         String repeat = "\t".repeat(Math.max(0, depth+1));
         String repeat2 = repeat+"\t";
 
-        if (block.dependencyBlocks != null) {
-            output.append(repeat).append("Dependency blocks:\n");
-            for (String d : block.dependencyBlocks)
-                output.append(repeat2).append(d).append('\n');
-            output.append(repeat).append("-\n");
-        }
+        if (block.dependencyBlocks != null)
+            if (!block.dependencyBlocks.isEmpty()) {
+                output.append(repeat).append("Dependency blocks:\n");
+                for (final String d : block.dependencyBlocks)
+                    output.append(repeat2).append(d).append('\n');
+                output.append(repeat).append("-\n");
+            }
 
         // dependency blocks info
-        if (block.variables != null) {
-            output.append(repeat).append("Variables :\n");
-            for (Variable v : block.variables)
-                output.append(repeat2).append(v.name).append(": ").append( Token.tokensToString(v.value, true) ).append('\n');
-            output.append(repeat).append("-\n");
-        }
+        if (block.variables != null)
+            if (!block.variables.isEmpty()) {
+                output.append(repeat).append("Variables:\n");
+                for (final Variable v : block.variables)
+                    output.append(repeat2).append(v.name).append(": ").append( Token.tokensToString(v.value, true) ).append('\n');
+                output.append(repeat).append("-\n");
+            }
 
         // block tokens info
-        if (block.tokens != null) {
-            output.append(repeat).append("Tokens:\n");
-            for (Token t : block.tokens)
-                output.append(Token.outputChildrens(t, depth+2));
-            output.append(repeat).append("-\n");
-        }
+        if (block.tokens != null)
+            if (!block.tokens.isEmpty()) {
+                output.append(repeat).append("Tokens:\n");
+                for (final Token t : block.tokens)
+                    output.append(Token.outputChildrens(t, depth+2));
+                output.append(repeat).append("-\n");
+            }
 
         // local blocks info
-        if (block.localBlocks != null) {
-            output.append(repeat).append("Local blocks:\n");
-            for (int i = 0; i < block.localBlocks.size(); i++)
-                output.append(outputLocalBlocks(block.localBlocks.get(i), depth+2, i));
-            output.append(repeat).append("-\n");
-        }
+        if (block.localBlocks != null)
+            if (!block.localBlocks.isEmpty()) {
+                output.append(repeat).append("Local blocks:\n");
+                for (int i = 0; i < block.localBlocks.size(); i++)
+                    output.append(outputLocalBlocks(block.localBlocks.get(i), depth+2, i));
+                output.append(repeat).append("-\n");
+            }
 
         //
         output.append("\t".repeat(Math.max(0, depth))).append("eb\n");

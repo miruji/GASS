@@ -14,7 +14,7 @@ public class Parser {
     public ArrayList<Enum> enums = new ArrayList<>();
     public ArrayList<Class> classes = new ArrayList<>();
     public ArrayList<Block> blocks = new ArrayList<>();
-    public Parser(ArrayList<Token> tokens) {
+    public Parser(final ArrayList<Token> tokens) {
         this.tokens = tokens;
 
         // check func => check code exceptions
@@ -37,6 +37,7 @@ public class Parser {
         parseAllVariables(); // variables in global and local blocks
     }
     /** get error line tokens output */
+    /*
     private String getErrorLineOutput(int errorToken, ArrayList<Token> tokens, boolean searchRightEndline) {
         int endlinePos = errorToken+1;
         if (searchRightEndline)
@@ -64,8 +65,9 @@ public class Parser {
         stringBuffer.deleteCharAt(0); // delete first ' '
         return stringBuffer.toString();
     }
-    private String getErrorLineOutput(int errorToken, ArrayList<Token> tokens) {
-        ArrayList<Token> result = new ArrayList<Token>();
+    */
+    private String getErrorLineOutput(final int errorToken, final ArrayList<Token> tokens) {
+        final ArrayList<Token> result = new ArrayList<>();
 
         int lineBegin = 0;
         for (int i = errorToken-1; i > 0; i--) {
@@ -82,7 +84,7 @@ public class Parser {
     /** check (= ENDLINE) */
     private void checkAssign() {
         for (int i = 0; i < tokens.size(); i++) {
-            TokenType tokenType = tokens.get(i).type;
+            final TokenType tokenType = tokens.get(i).type;
             if (!Token.typeToString(tokenType).isEmpty() && tokens.get(i).data == null &&
                 tokenType != TokenType.CIRCLE_BLOCK_BEGIN && tokenType != TokenType.FIGURE_BLOCK_BEGIN && tokenType != TokenType.SQUARE_BLOCK_BEGIN &&
                 tokenType != TokenType.CIRCLE_BLOCK_END && tokenType != TokenType.FIGURE_BLOCK_END && tokenType != TokenType.SQUARE_BLOCK_END) {
@@ -102,13 +104,13 @@ public class Parser {
     private void deleteBlockEndline() {
         for (int i = 0; i+1 < tokens.size(); i++) {
             if (tokens.get(i+1).type == TokenType.ENDLINE) {
-                TokenType type = tokens.get(i).type;
+                final TokenType type = tokens.get(i).type;
                 if (type == TokenType.END) {
                     tokens.remove(i+1);
                     i--;
                 } else
                 if (type == TokenType.BLOCK_BEGIN || type == TokenType.CIRCLE_BLOCK_BEGIN ||
-                        type == TokenType.SQUARE_BLOCK_BEGIN || type == TokenType.FIGURE_BLOCK_BEGIN) {
+                    type == TokenType.SQUARE_BLOCK_BEGIN || type == TokenType.FIGURE_BLOCK_BEGIN) {
                     tokens.remove(i+1);
                     i--;
                 }
@@ -123,29 +125,29 @@ public class Parser {
         parseSquareBracket(tokens);
     }
     /** parse [] brackets */
-    private void parseSquareBracket(ArrayList<Token> tokens) {
-        for (Token token : tokens) {
+    private void parseSquareBracket(final ArrayList<Token> tokens) {
+        for (final Token token : tokens) {
             if (token.childrens != null)
                 parseSquareBracket(token.childrens);
         }
         parseBlock(tokens, TokenType.SQUARE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_END);
     }
     /** parse {} brackets */
-    private void parseFigureBracket(ArrayList<Token> tokens) {
-        for (Token token : tokens) {
+    private void parseFigureBracket(final ArrayList<Token> tokens) {
+        for (final Token token : tokens) {
             if (token.childrens != null)
                 parseFigureBracket(token.childrens);
         }
         parseBlock(tokens, TokenType.FIGURE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_END);
     }
     /** parse block BEGIN -> END */
-    private void parseBlock(ArrayList<Token> tokens, TokenType beginType, TokenType endType) {
-        Stack<Integer> blocks = new Stack<>();
+    private void parseBlock(final ArrayList<Token> tokens, final TokenType beginType, final TokenType endType) {
+        final Stack<Integer> blocks = new Stack<>();
         for (int i = 0; i < tokens.size(); i++) {
             if (tokens.get(i).type == beginType) {      // begin
                 blocks.push(i);
             } else if (tokens.get(i).type == endType) { // end
-                int lastBlock = blocks.size()-2;
+                final int lastBlock = blocks.size()-2;
                 if (lastBlock >= 0) {
                     tokens.get( blocks.get(lastBlock) ).addChildren( tokens.get(blocks.peek()) );
                     tokens.remove( blocks.peek().intValue() );
@@ -164,8 +166,8 @@ public class Parser {
     /** parse enum block */
     private void parseEnum() {
         for (int i = 0; i+2 < tokens.size(); i++) {
-            Token token2 = tokens.get(i+1);
-            Token token3 = tokens.get(i+2);
+            final Token token2 = tokens.get(i+1);
+            final Token token3 = tokens.get(i+2);
             if (tokens.get(i).type == TokenType.ENUM && token2.type == TokenType.WORD && token3.type == TokenType.BLOCK_BEGIN) {
                 enums.add(new Enum(token2.data, token3.childrens));
                 tokens.remove(i); // enum
@@ -178,8 +180,8 @@ public class Parser {
     /** parse class block (public/private) */
     private void parseClass() {
         for (int i = 0; i+2 < tokens.size(); i++) {
-            Token token2 = tokens.get(i+1);
-            Token token3 = tokens.get(i+2);
+            final Token token2 = tokens.get(i+1);
+            final Token token3 = tokens.get(i+2);
             if (tokens.get(i).type == TokenType.PRIVATE && token2.type == TokenType.WORD && token3.type == TokenType.BLOCK_BEGIN) {
                 classes.add(new Class(token2.data, ClassType.PRIVATE, token3.childrens));
                 tokens.remove(i); // private/public
@@ -197,16 +199,16 @@ public class Parser {
         }
     }
     /** add new global block with parameters and check exist */
-    private void addGlobalBlockWithParameters(String name, BlockType type, ArrayList<Token> parameters, ArrayList<Token> tokens) {
-        for (Block b : blocks) { // check exist
+    private void addGlobalBlockWithParameters(final String name, final BlockType type, final ArrayList<Token> parameters, final ArrayList<Token> tokens) {
+        for (final Block b : blocks) { // check exist
             if (Objects.equals(b.name, name))
                 new Log(LogType.error,"The global ["+b.name+"] block has been re-declared");
         }
         blocks.add(new Block(name, type, parameters, tokens));
     }
     /** add new global block with no parameters and check exist */
-    private void addGlobalBlockWithNoParameters(String name, BlockType type, ArrayList<Token> tokens) {
-        for (Block b : blocks) { // check exist
+    private void addGlobalBlockWithNoParameters(final String name, final BlockType type, final ArrayList<Token> tokens) {
+        for (final Block b : blocks) { // check exist
             if (Objects.equals(b.name, name))
                 new Log(LogType.error,"The global ["+b.name+"] block has been re-declared");
         }
@@ -216,7 +218,7 @@ public class Parser {
     private void parseGlobalBlock() {
         for (int i = 0; i+1 < tokens.size(); i++) {
             // type
-            BlockType type = BlockType.NONE;
+            final BlockType type;
             if (i-1 >= 0) {
                 if (tokens.get(i-1).type == TokenType.FUNCTION) {
                     type = BlockType.FUNCTION;
@@ -227,13 +229,14 @@ public class Parser {
                     type = BlockType.PROCEDURE;
                     tokens.remove(i-1);
                     i--;
-                }
-            }
+                } else type = BlockType.NONE;
+            } else type = BlockType.NONE;
+
 
             // declaration
-            Token token2 = tokens.get(i+1);
+            final Token token2 = tokens.get(i+1);
             if (tokens.get(i).type == TokenType.WORD && token2.type == TokenType.CIRCLE_BLOCK_BEGIN && i+2 < tokens.size()) {
-                Token token3 = tokens.get(i+2);
+                final Token token3 = tokens.get(i+2);
                 if (token3.type == TokenType.BLOCK_BEGIN) {
                     // block with parameters
                     addGlobalBlockWithParameters(tokens.get(i).data, type, token2.childrens, token3.childrens);
@@ -255,11 +258,11 @@ public class Parser {
     }
     /** parse all local block proc/func/none */
     private void parseAllLocalBlock() {
-        for (Block block : blocks)
+        for (final Block block : blocks)
             parseLocalBlock(block, 1);
     }
     /** cycle parse local block proc/func/none  */
-    private void parseLocalBlock(Block block, int depth) {
+    private void parseLocalBlock(final Block block, final int depth) {
         if (block.tokens != null) { // if no tokens in global block => no local blocks
             int assignNum = 0;
 
@@ -272,7 +275,7 @@ public class Parser {
                     if (block.tokens.get(i-1).type == TokenType.FUNCTION)
                         newBlockType = BlockType.FUNCTION;
 
-                    Block newBlock = new Block(newBlockType, block.tokens.get(i).childrens);
+                    final Block newBlock = new Block(newBlockType, block.tokens.get(i).childrens);
 
                     if (newBlockType == BlockType.NONE) {
                         block.tokens.get(i).type = TokenType.BLOCK_ASSIGN;
@@ -301,20 +304,20 @@ public class Parser {
     }
     /** check (a = PROCEDURE_ASSIGN) */
     private void checkProcedureAssign() {
-        for (Block block : blocks) {
-            ArrayList<Token> tokens = block.tokens;
+        for (final Block block : blocks) {
+            final ArrayList<Token> tokens = block.tokens;
             for (int i = 1; i < tokens.size(); i++) {
                 if (tokens.get(i).type == TokenType.PROCEDURE_ASSIGN && tokens.get(i-1).type == TokenType.EQUAL)
-                    new Log(LogType.error,"The result from the procedure in the block ["+block.name+"] is expected: ["+getErrorLineOutput(i, tokens, false)+"]");
+                    new Log(LogType.error,"The result from the procedure in the block ["+block.name+"] is expected: ["+getErrorLineOutput(i, tokens)+"]");
             }
         }
         //
     }
     /** parse global assign to func/proc/none */
-    private void parseGlobalBlockAssign(Block block) {
-        ArrayList<Token> tokens = block.tokens;
+    private void parseGlobalBlockAssign(final Block block) {
+        final ArrayList<Token> tokens = block.tokens;
         for (int i = 0; i+1 < tokens.size(); i++) {
-            Token currentToken = tokens.get(i);
+            final Token currentToken = tokens.get(i);
             if (currentToken.type == TokenType.WORD && tokens.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
                 currentToken.type = TokenType.BLOCK_ASSIGN;
                 block.addDependencyBlock(currentToken.data);
@@ -322,36 +325,38 @@ public class Parser {
         }
         //
         if (block.localBlocks != null) {
-            for (Block localBlock : block.localBlocks)
+            for (final Block localBlock : block.localBlocks)
                 parseGlobalBlockAssign(localBlock);
         }
     }
     /**  parse all global assign to func/proc/none */
     private void parseAllGlobalBlockAssign() {
-        for (Block block : blocks)
+        for (final Block block : blocks)
             parseGlobalBlockAssign(block);
     }
     /** parser variables */
-    private void parseVariables(Block block) {
+    private void parseVariables(final Block block) {
         final ArrayList<Token> tokens = block.tokens;
         for (int i = 0; i+1 < tokens.size(); i++) {
-            Token currentToken = tokens.get(i);
+            final Token currentToken = tokens.get(i);
             if (currentToken.type == TokenType.WORD) {
                 currentToken.type = TokenType.VARIABLE_NAME;
                 // TO:DO: check left public/private or const/final
 
                 // add new variable
-                ArrayList<Token> variableValue = new ArrayList<Token>();
+                final ArrayList<Token> variableValue = new ArrayList<>();
                 if (tokens.get(i+1).type == TokenType.EQUAL && tokens.get(i+2).type != TokenType.ENDLINE) {
                     tokens.remove(i); // remove variable name
                     tokens.remove(i); // remove =
                     // next read right tokens
                     while (i < tokens.size()) {
-                        if (tokens.get(i).type == TokenType.ENDLINE) {
+                        final Token tokenBuffer = tokens.get(i);
+                        if (tokenBuffer.type == TokenType.ENDLINE) { //
                             tokens.remove(i);
+                            i--;
                             break;
                         } else {
-                            variableValue.add(tokens.get(i));
+                            variableValue.add(tokenBuffer);
                             tokens.remove(i);
                         }
                     }
@@ -361,13 +366,13 @@ public class Parser {
         }
         //
         if (block.localBlocks != null) {
-            for (Block localBlock : block.localBlocks)
+            for (final Block localBlock : block.localBlocks)
                 parseVariables(localBlock);
         }
     }
     /** parser all variables */
     private void parseAllVariables() {
-        for (Block block : blocks) {
+        for (final Block block : blocks) {
             parseVariables(block);
         }
         //

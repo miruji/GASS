@@ -18,7 +18,6 @@ func main():
   \\ if return then auto return 0
 end
 proc test:
-  c = {}
   a = 10
   proc:
     b = 15
@@ -34,5 +33,9 @@ func b():
 end
 func main():
   a = b()
+  a = 15
   println(a)
+  func:
+    a = 10
+  end
 end

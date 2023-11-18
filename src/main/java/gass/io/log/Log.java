@@ -3,26 +3,26 @@ package gass.io.log;
 public class Log {
     public static boolean debugStackTraceFlag = false;
     public static String getStackTraceCallInfo() {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (int i = 2; i < stackTrace.length; i++) {
-            StackTraceElement element = stackTrace[i];
-            String className = element.getClassName();
-            String methodName = element.getMethodName();
+            final StackTraceElement element = stackTrace[i];
+            final String className = element.getClassName();
+            final String methodName = element.getMethodName();
             if (!className.equals(Log.class.getName()) && !methodName.equals("getStackTraceCallInfo")) {
                 return className + ":" + methodName;
             }
         }
         return "unknown";
     }
-    private boolean containsFlag(LogFlag flag, LogFlag[] flags) {
-        for (LogFlag f : flags)
+    private boolean containsFlag(final LogFlag flag, final LogFlag[] flags) {
+        for (final LogFlag f : flags)
             if (f == flag)
                 return true;
 
         return false;
     }
-    public Log(LogType type, String message, LogFlag... flags) {
-        StringBuilder result = new StringBuilder("[gass]["+type.toString()+"]: ");
+    public Log(final LogType type, final String message, final LogFlag... flags) {
+        final StringBuilder result = new StringBuilder("[gass]["+type.toString()+"]: ");
 
         if (containsFlag(LogFlag.stackTraceCallInfo, flags) || debugStackTraceFlag)
             result.append('[').append(getStackTraceCallInfo()).append("]: ");

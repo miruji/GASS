@@ -11,11 +11,11 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 
 public class File {
-    public static String getFileString(String openFilePath) {
+    public static String getFileString(final String openFilePath) {
         try {
             new Log(LogType.info, "Open file by path: ["+openFilePath+']');
-            BufferedReader reader = new BufferedReader(new FileReader(openFilePath));
-            StringBuilder result = new StringBuilder();
+            final BufferedReader reader = new BufferedReader(new FileReader(openFilePath));
+            final StringBuilder result = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null)
                 result.append(line).append('\u001F');
@@ -26,7 +26,7 @@ public class File {
             return "";
         }
     }
-    public static void stringToFile(String filePath, String content) {
+    public static void stringToFile(final String filePath, final String content) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             writer.write(content);
             new Log(LogType.info,"Content has been written to the file");
