@@ -104,7 +104,7 @@ public class Tokenizer {
                 counter++;
                 while (counter < inputLength) {
                     counter++;
-                    if (input.charAt(counter) == '*' && input.charAt(counter+1) == '\\') {
+                    if (input.charAt(counter) == '*' && input.charAt(counter+1) == '\\') { // TO:DO: -> fix double \* \* error
                         counter++;
                         return true;
                     }

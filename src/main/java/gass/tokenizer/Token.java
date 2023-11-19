@@ -17,6 +17,33 @@ public class Token {
         this.type = type;
         this.childrens = childrens;
     }
+    /** check operator */
+    public static boolean checkOperator(final TokenType type) {
+        // single math
+        if (type == TokenType.PLUS) return true;
+        if (type == TokenType.MINUS) return true;
+        if (type == TokenType.MULTIPLY) return true;
+        if (type == TokenType.DIVIDE) return true;
+        if (type == TokenType.EQUAL) return true;
+        if (type == TokenType.MODULO) return true;
+        // double math
+        if (type == TokenType.INCREMENT) return true;
+        if (type == TokenType.PLUS_EQUALS) return true;
+        if (type == TokenType.DECREMENT) return true;
+        if (type == TokenType.MINUS_EQUALS) return true;
+        if (type == TokenType.MULTIPLY_EQUALS) return true;
+        if (type == TokenType.DIVIDE_EQUALS) return true;
+        // single logical
+        if (type == TokenType.QUESTION) return true;
+        if (type == TokenType.NOT) return true;
+        // double logical
+        if (type == TokenType.NOT_EQUAL) return true;
+        if (type == TokenType.DOUBLE_EQUAL) return true;;
+        if (type == TokenType.AND) return true;
+        if (type == TokenType.OR) return true;
+        //
+        return false;
+    }
     /** type to string */
     public static String typeToString(final TokenType type) {
         // single math
@@ -42,6 +69,7 @@ public class Token {
         if (type == TokenType.AND) return "&&";
         if (type == TokenType.OR) return "||";
         // block
+        if (type == TokenType.BLOCK_BEGIN) return ":";
         if (type == TokenType.CIRCLE_BLOCK_BEGIN) return "(";
         if (type == TokenType.CIRCLE_BLOCK_END) return ")";
         if (type == TokenType.FIGURE_BLOCK_BEGIN) return "{";
@@ -162,7 +190,7 @@ public class Token {
             if (List.of(TokenType.BLOCK_ASSIGN, TokenType.FUNCTION_ASSIGN, TokenType.PROCEDURE_ASSIGN).contains(type) && i+1 < tokens.size())
                 // if no [a = b()]
                 if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains( tokens.get(i+1).type ))
-                    result.append("ASSIGN[");
+                    result.append("BLOCK[");
 
             result.append(token.data != null ? token.data : typeToString(type));
 
@@ -174,8 +202,11 @@ public class Token {
 
             // if no ( { [ or ) } ]
             if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains(type) && i+1 < tokens.size())
-                if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN, TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END).contains( tokens.get(i+1).type ))
+                if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN,
+                             TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END,
+                             TokenType.BLOCK_BEGIN).contains( tokens.get(i+1).type )) {
                     result.append(' ');
+                }
 
             // childrens
             if (readChildrens) {
@@ -185,6 +216,11 @@ public class Token {
                 if (token.type == TokenType.CIRCLE_BLOCK_BEGIN) result.append(')');
                 else if (token.type == TokenType.FIGURE_BLOCK_BEGIN) result.append('}');
                 else if (token.type == TokenType.SQUARE_BLOCK_BEGIN) result.append(']');
+
+                if (List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN, TokenType.BLOCK_BEGIN).contains( type ))
+                    if (i+1 < tokens.size())
+                        if (Token.checkOperator(tokens.get(i+1).type))
+                            result.append(' ');
             }
         }
         return result.toString();

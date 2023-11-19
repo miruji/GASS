@@ -5,9 +5,19 @@ import java.util.ArrayList;
 
 public class Variable {
     public final String name;
-    public ArrayList<Token> value;
-    public Variable(final String name, final ArrayList<Token> value) {
+    public ExpressionType type;
+    public Expression value;
+    public ExpressionObject resultValue;
+    public Variable(final String name, final ExpressionType type, final ArrayList<Token> value) {
         this.name = name;
-        this.value = value;
+        this.type = type;
+        this.value = new Expression(value);
+    }
+    public void setValue(final Block block, final ArrayList<Block> blocks) {
+        if (resultValue == null)
+            resultValue = this.value.getValue(block, blocks);
+    }
+    public ExpressionObject getValue() {
+        return resultValue;
     }
 }

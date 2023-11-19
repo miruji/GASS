@@ -1,7 +1,5 @@
 package gass.parser;
 
-import gass.io.log.Log;
-import gass.io.log.LogType;
 import gass.tokenizer.Token;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -13,32 +11,33 @@ public class Block {
     public ArrayList<Token> tokens;            // block tokens
     public ArrayList<Block> localBlocks;       // local blocks
     public ArrayList<String> dependencyBlocks; // global dependency blocks
-    public  ArrayList<Variable> variables;     // block variables
+    public ArrayList<Variable> variables;      // block variables
+    public BlockResult result;
     /** global block with parameters */
-    public Block(String name, BlockType type, ArrayList<Token> parameters, ArrayList<Token> tokens) {
+    public Block(final String name, final BlockType type, ArrayList<Token> parameters, final ArrayList<Token> tokens) {
         this.name = name;
         this.type = type;
         this.parameters = parameters;
         this.tokens = tokens;
     }
     /** global block with no parameters */
-    public Block(String name, BlockType type, ArrayList<Token> tokens) {
+    public Block(final String name, final BlockType type, final ArrayList<Token> tokens) {
         this.name = name;
         this.type = type;
         this.tokens = tokens;
     }
     /** local block */
-    public Block(BlockType type, ArrayList<Token> tokens) {
+    public Block(final BlockType type, final ArrayList<Token> tokens) {
         this.type = type;
         this.tokens = tokens;
     }
     /** add local block */
-    public void addLocalBlock(Block localBlock) {
+    public void addLocalBlock(final Block localBlock) {
         if (localBlocks == null) localBlocks = new ArrayList<>();
         localBlocks.add(localBlock);
     }
     /** add dependency block */
-    public void addDependencyBlock(String dependencyBlock) {
+    public void addDependencyBlock(final String dependencyBlock) {
         if (dependencyBlocks == null) dependencyBlocks = new ArrayList<>();
 
         // check exist
@@ -49,28 +48,39 @@ public class Block {
 
         dependencyBlocks.add(dependencyBlock);
     }
+    /** get dependency blocks */
+    public static ArrayList<Block> getDependencyBlocks(final ArrayList<Block> blocks, final ArrayList<String> findNames) {
+        ArrayList<Block> result = new ArrayList<>();
+        if (findNames != null)
+            for (final String findName : findNames) {
+                final Block b = getBlock(blocks, findName);
+                if (b != null) result.add(b);
+            }
+        return result;
+    }
+    /** get block by name */
+    public static Block getBlock(final ArrayList<Block> blocks, final String findName) {
+        for (final Block b : blocks)
+            if (Objects.equals(b.name, findName)) return b;
+        return null;
+    }
     /** add variable */
-    public void addVariable(String name, ArrayList<Token> value) {
+    public void addVariable(final String name, final ArrayList<Token> value) {
         if (variables == null) variables = new ArrayList<>();
 
-        // check exist
-        for (final Variable v : variables) {
-            if (Objects.equals(v.name, name)) {
-                v.value = value; // set new variable value
-                return;
-            }
-        }
+        // no check exist
+        // each variable has its own declaration order
 
-        variables.add( new Variable(name, value) );
+        variables.add( new Variable(name, ExpressionType.NUMBER, value) );
     }
-    /** find block by name */
-    public static boolean find(ArrayList<Block> blocks, String findName) {
-        for (final Block b : blocks)
-            if (Objects.equals(b.name, findName)) return true;
-        return false;
+    /** get variable by name */
+    public static Variable getVariable(Block block, final String findName) {
+        for (final Variable v : block.variables)
+            if (Objects.equals(v.name, findName)) return v;
+        return null;
     }
     /** local blocks tree output */
-    public static String outputLocalBlocks(Block block, int depth, int assignNum) {
+    public static String outputLocalBlocks(final Block block, final int depth, final int assignNum) {
         final StringBuilder output = new StringBuilder();
 
         // block info
@@ -97,9 +107,19 @@ public class Block {
             if (!block.variables.isEmpty()) {
                 output.append(repeat).append("Variables:\n");
                 for (final Variable v : block.variables)
-                    output.append(repeat2).append(v.name).append(": ").append( Token.tokensToString(v.value, true) ).append('\n');
+                    output.append(repeat2).append(v.name)
+                          .append(": [").append( Token.tokensToString(v.value.value, true) ).append("]")
+                          .append(" -> [").append( v.getValue() != null ? v.getValue().value : "" ).append("]\n");
                 output.append(repeat).append("-\n");
             }
+
+        // block return
+        if (block.result != null) {
+            if (block.result.value != null)
+                output.append(repeat).append("Return: ")
+                      .append(": [").append( Token.tokensToString(block.result.expression.value, true) ).append("]")
+                      .append(" -> [").append(block.result.value.value).append("]\n");
+        }
 
         // block tokens info
         if (block.tokens != null)

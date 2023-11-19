@@ -27,15 +27,43 @@ proc test:
   println(a) \\ println 25
 end
 *\
+\*
+func b1():
+    a1()
+end
 
-func b():
-  return 10
+func a2():
+  return a3()
+end
+func a1():
+  return a2()
+end
+func a3():
+  a = 20
+  return 10+a
+end
+
+func main():
+  a = a1()+b1()
+  a = 15
+  \\println(a)
+  \\proc:
+  \\  a = 10
+  \\end
+  return a
+end
+*\
+func a2():
+    a = 10
+    return a
+end
+func a1():
+    a = 20+a2() \\ TO:DO: fix a: [20 + a2()] -> [40]
+    return a+a2()
 end
 func main():
-  a = b()
-  a = 15
-  println(a)
-  func:
-    a = 10
-  end
+    return a1()
+end
+func test():
+    return 0
 end

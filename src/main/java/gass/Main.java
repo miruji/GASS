@@ -41,7 +41,7 @@ public class Main {
         */
 
         // parser
-        Parser parser = new Parser(tokenizer.tokens);
+        final Parser parser = new Parser(tokenizer.tokens);
 
         outputBuffer = new StringBuilder("Parser output: [\n");
         for (final Token t : parser.tokens) {
