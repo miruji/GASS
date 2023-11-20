@@ -4,4 +4,7 @@ public enum ExpressionType {
     NONE,
     NUMBER,
     PLUS,
+    MINUS,
+    MULTIPLY,
+    DIVIDE,
 }

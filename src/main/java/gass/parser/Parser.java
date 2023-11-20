@@ -284,12 +284,11 @@ public class Parser {
     private void checkProcedureAssign() {
         for (final Block block : blocks) {
             final ArrayList<Token> tokens = block.tokens;
-            if (tokens == null) continue;
-            if (tokens.isEmpty()) continue;
+            if (tokens == null || tokens.isEmpty()) continue;
 
             for (int i = 1; i < tokens.size(); i++) {
                 if (tokens.get(i).type == TokenType.PROCEDURE_ASSIGN && tokens.get(i-1).type == TokenType.EQUAL)
-                    new Log(LogType.error,"The result from the procedure in the block ["+block.name+"] is expected: ["+getErrorLineOutput(i, tokens)+"]");
+                    new Log(LogType.error,"The result from the procedure in the block ["+block.name+"] is expected ["+getErrorLineOutput(i, tokens)+"]");
             }
         }
         //
@@ -297,8 +296,7 @@ public class Parser {
     /** parse global assign to func/proc/none */
     private void parseGlobalBlockAssign(final Block block) {
         final ArrayList<Token> tokens = block.tokens;
-        if (tokens == null) return;
-        if (tokens.isEmpty()) return;
+        if (tokens == null || tokens.isEmpty()) return;
 
         for (int i = 0; i+1 < tokens.size(); i++) {
             final Token currentToken = tokens.get(i);
@@ -321,8 +319,7 @@ public class Parser {
     /** declarate variables */
     private void declarateVariable(final Block block) {
         final ArrayList<Token> tokens = block.tokens;
-        if (tokens == null) return;
-        if (tokens.isEmpty()) return;
+        if (tokens == null || tokens.isEmpty()) return;
 
         for (int i = 0; i+1 < tokens.size(); i++) {
             final Token currentToken = tokens.get(i);
@@ -343,6 +340,15 @@ public class Parser {
                             i--;
                             break;
                         } else {
+                            if (nextToken.type == TokenType.WORD) {
+                                nextToken.type = TokenType.VARIABLE_NAME;
+                                final int checkVariable = block.getVariableNum(nextToken.data);
+                                if (checkVariable >= 0)
+                                    nextToken.data += ':'+String.valueOf(checkVariable);
+                                else
+                                    new Log(LogType.error, "Expected existing variable ["+nextToken.data+"] in block ["+block.name+']');
+                            }
+                            // checkVariable
                             variableValue.add(nextToken);
                             tokens.remove(i);
                         }
@@ -362,43 +368,39 @@ public class Parser {
         if (block.result != null) return;
 
         final ArrayList<Token> tokens = block.tokens;
-        if (tokens != null)
-            if (!tokens.isEmpty()) {
-                for (int i = 0; i < tokens.size(); i++) {
-                    final Token currnetToken = tokens.get(i);
-                    if (currnetToken.type == TokenType.RETURN_VALUE) {
-                        tokens.remove(i); // remove return
+        if (tokens != null && !tokens.isEmpty()) {
+            for (int i = 0; i < tokens.size(); i++) {
+                final Token currnetToken = tokens.get(i);
+                if (currnetToken.type == TokenType.RETURN_VALUE) {
+                    tokens.remove(i); // remove return
 
-                        // add result
-                        ArrayList<Token> resultValue = new ArrayList<>();
-                        // next read right tokens
-                        // TO:DO: in this parse assigns
-                        while (i < tokens.size()) {
-                            final Token nextToken = tokens.get(i);
-                            if (nextToken.type == TokenType.ENDLINE) {
-                                tokens.remove(i);
-                                i--;
-                                break;
-                            } else {
-                                resultValue.add(nextToken);
-                                tokens.remove(i);
-                            }
+                    // add result
+                    ArrayList<Token> resultValue = new ArrayList<>();
+                    // next read right tokens
+                    // TO:DO: in this parse assigns
+                    while (i < tokens.size()) {
+                        final Token nextToken = tokens.get(i);
+                        if (nextToken.type == TokenType.ENDLINE) {
+                            tokens.remove(i);
+                            i--;
+                            break;
+                        } else {
+                            resultValue.add(nextToken);
+                            tokens.remove(i);
                         }
-                        block.result = new BlockResult(resultValue);
                     }
+                    block.result = new BlockResult(resultValue);
                 }
-                //
             }
+            //
+        }
     }
     /** parse variables */
     private void parseVariable(final Block block) {
         final ArrayList<Variable> variables = block.variables;
-        if (variables != null)
-            if (!variables.isEmpty())
-                for (int i = 0; i < variables.size(); i++) {
-                    //System.out.println(variables.get(i).name);
-                    variables.get(i).setValue(block, blocks);
-                }
+        if (variables != null && !variables.isEmpty())
+            for (final Variable variable : variables)
+                variable.setValue(block, blocks);
     }
     /** parse block dependency */
     private void parseBlockDependency(final int depth, final Block dependencyBlock) {
@@ -413,7 +415,7 @@ public class Parser {
                 // TO:DO: check block type
                 parseVariable(dependency);
             if (dependency.result != null) {
-                ExpressionObject result = dependency.result.getValue(dependency, blocks);
+                final ExpressionObject result = dependency.result.getValue(dependency, blocks);
                 if (result != null)
                     System.out.println(depthTabs2 + "return: "+result.value.toString());
             }

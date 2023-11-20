@@ -53,17 +53,15 @@ func main():
   return a
 end
 *\
-func a2():
-    a = 10
+func a():
+    a = 15
     return a
 end
-func a1():
-    a = 20+a2() \\ TO:DO: fix a: [20 + a2()] -> [40]
-    return a+a2()
-end
 func main():
-    return a1()
-end
-func test():
-    return 0
+    a = 10
+    b = 10
+    a = a+b
+    b = 25
+    a = a+b
+    return a/a+a()
 end

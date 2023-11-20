@@ -51,7 +51,7 @@ public class Block {
     /** get dependency blocks */
     public static ArrayList<Block> getDependencyBlocks(final ArrayList<Block> blocks, final ArrayList<String> findNames) {
         ArrayList<Block> result = new ArrayList<>();
-        if (findNames != null)
+        if (findNames != null && !findNames.isEmpty() && blocks != null&& !blocks.isEmpty())
             for (final String findName : findNames) {
                 final Block b = getBlock(blocks, findName);
                 if (b != null) result.add(b);
@@ -60,8 +60,9 @@ public class Block {
     }
     /** get block by name */
     public static Block getBlock(final ArrayList<Block> blocks, final String findName) {
-        for (final Block b : blocks)
-            if (Objects.equals(b.name, findName)) return b;
+        if (findName != null && !findName.isEmpty() && blocks != null && !blocks.isEmpty())
+            for (final Block b : blocks)
+                if (Objects.equals(b.name, findName)) return b;
         return null;
     }
     /** add variable */
@@ -74,9 +75,23 @@ public class Block {
         variables.add( new Variable(name, ExpressionType.NUMBER, value) );
     }
     /** get variable by name */
-    public static Variable getVariable(Block block, final String findName) {
-        for (final Variable v : block.variables)
-            if (Objects.equals(v.name, findName)) return v;
+    public int getVariableNum(final String findName) {
+        if (variables != null && !variables.isEmpty()) {
+            for (int i = variables.size()-1; i >= 0; i--) {
+                Variable v = variables.get(i);
+                if (Objects.equals(v.name, findName)) return i;
+            }
+        }
+        return -1;
+    }
+    /** get variable by name */
+    public Variable getVariable(final String findName) {
+        if (variables != null && !variables.isEmpty()) {
+            for (int i = variables.size()-1; i >= 0; i--) {
+                Variable v = variables.get(i);
+                if (Objects.equals(v.name, findName)) return v;
+            }
+        }
         return null;
     }
     /** local blocks tree output */
@@ -106,10 +121,12 @@ public class Block {
         if (block.variables != null)
             if (!block.variables.isEmpty()) {
                 output.append(repeat).append("Variables:\n");
-                for (final Variable v : block.variables)
-                    output.append(repeat2).append(v.name)
-                          .append(": [").append( Token.tokensToString(v.value.value, true) ).append("]")
-                          .append(" -> [").append( v.getValue() != null ? v.getValue().value : "" ).append("]\n");
+                for (int i = 0; i < block.variables.size(); i++) {
+                    final Variable v = block.variables.get(i);
+                    output.append(repeat2).append(i).append(": [").append(v.name).append("] =")
+                          .append(" [").append( Token.tokensToString(v.value.value, true) ).append("]")
+                          .append(" -> [").append( v.resultValue.value ).append("]\n");
+                }
                 output.append(repeat).append("-\n");
             }
 
