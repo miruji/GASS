@@ -50,10 +50,13 @@ public class Expression {
         for (int i = 0; i < value.size(); i++) {
             final Token currentToken = value.get(i);
             // read block assign
-            if ((currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN) && i+1 < value.size()) {
-                if (value.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
-                    //
+            if (currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN) {
+                if (i+1 < value.size() && value.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) { // global func with parameters
                     final Block blockAssign = Block.getBlock(blocks, currentToken.data);
+                    if (blockAssign != null)
+                        expressions.add(blockAssign.result.value);
+                } else { // local func with no parameters
+                    final Block blockAssign = Block.getBlock(block.localBlocks, currentToken.data);
                     if (blockAssign != null)
                         expressions.add(blockAssign.result.value);
                 }
@@ -68,7 +71,7 @@ public class Expression {
                 else
                     variable = block.variables.get( Integer.parseInt(variableAssign[1]) );
 
-                if (variable != null) {
+                if (variable != null && variable.getValue() != null) {
                     final ExpressionObject variableValue = new ExpressionObject(variable.getValue().type, variable.getValue().value);
                     expressions.add(variableValue);
                 }

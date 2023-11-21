@@ -83,10 +83,10 @@ public class Parser {
         for (int i = 0; i+1 < tokens.size(); i++) {
             if (tokens.get(i+1).type == TokenType.ENDLINE) {
                 final TokenType type = tokens.get(i).type;
-                if (type == TokenType.END) {
-                    tokens.remove(i+1);
-                    i--;
-                } else
+                //if (type == TokenType.END) {
+                //    tokens.remove(i+1);
+                //    i--;
+                //} else
                 if (type == TokenType.BLOCK_BEGIN || type == TokenType.CIRCLE_BLOCK_BEGIN ||
                     type == TokenType.SQUARE_BLOCK_BEGIN || type == TokenType.FIGURE_BLOCK_BEGIN) {
                     tokens.remove(i+1);
@@ -237,10 +237,10 @@ public class Parser {
     /** parse all local block proc/func/none */
     private void parseAllLocalBlock() {
         for (final Block block : blocks)
-            parseLocalBlock(block, 1);
+            declarateLocalBlock(block, 1);
     }
     /** cycle parse local block proc/func/none  */
-    private void parseLocalBlock(final Block block, final int depth) {
+    private void declarateLocalBlock(final Block block, final int depth) {
         if (block.tokens != null) { // if no tokens in global block => no local blocks
             int assignNum = 0;
 
@@ -272,7 +272,7 @@ public class Parser {
                         block.tokens.get(i).childrens = null;
                     }
 
-                    parseLocalBlock(newBlock, depth+1);
+                    declarateLocalBlock(newBlock, depth+1);
                     block.addLocalBlock(newBlock);
                 }
             }
@@ -332,6 +332,7 @@ public class Parser {
                 if (tokens.get(i+1).type == TokenType.EQUAL && tokens.get(i+2).type != TokenType.ENDLINE) {
                     tokens.remove(i); // remove variable name
                     tokens.remove(i); // remove =
+
                     // next read right tokens
                     while (i < tokens.size()) {
                         final Token nextToken = tokens.get(i);
@@ -355,9 +356,10 @@ public class Parser {
                     }
                     block.addVariable(currentToken.data, variableValue);
                 }
+                //
             }
         }
-        //
+        // local blocks
         if (block.localBlocks != null) {
             for (final Block localBlock : block.localBlocks)
                 declarateVariable(localBlock);
@@ -394,6 +396,11 @@ public class Parser {
             }
             //
         }
+        // local blocks
+        if (block.localBlocks != null) {
+            for (final Block localBlock : block.localBlocks)
+                declarateResult(localBlock);
+        }
     }
     /** parse variables */
     private void parseVariable(final Block block) {
@@ -412,28 +419,52 @@ public class Parser {
             parseBlockDependency(depth+1, dependency);
 
             // parse block
-                // TO:DO: check block type
-                parseVariable(dependency);
+            // TO:DO: check block type
+            parseVariable(dependency);
             if (dependency.result != null) {
                 final ExpressionObject result = dependency.result.getValue(dependency, blocks);
-                if (result != null)
+                if (result != null && result.value != null)
                     System.out.println(depthTabs2 + "return: "+result.value.toString());
             }
         }
+        //
+    }
+    /** parse local block */
+    private void parseLocalBlock(final int depth, final ArrayList<Block> localBlocks) {
+        final String depthTabs1 = "\t".repeat(depth);
+        final String depthTabs2 = depthTabs1+'\t';
+        if (localBlocks != null && !localBlocks.isEmpty())
+            for (final Block dependency : localBlocks) {
+                System.out.println(depthTabs1+dependency.name+':');
+                parseLocalBlock(depth+1, dependency.localBlocks);
+
+                // parse block
+                // TO:DO: check block type
+                parseBlockDependency(depth+1, dependency);
+                parseVariable(dependency);
+                if (dependency.result != null) {
+                    final ExpressionObject result = dependency.result.getValue(dependency, blocks);
+                    if (result != null && result.value != null)
+                        System.out.println(depthTabs2 + "return: "+result.value.toString());
+                }
+            }
         //
     }
     /** parse all block dependency */
     private void parseAllBlockDependency() {
         for (final Block dependencyBlock : blocks) {
             System.out.println("> "+dependencyBlock.name+':');
-            parseBlockDependency(1, dependencyBlock);
 
+            parseBlockDependency(1, dependencyBlock);
+            parseLocalBlock(1, dependencyBlock.localBlocks);
+
+            // parse block
             // TO:DO: fix bottom
             parseVariable(dependencyBlock);
             if (dependencyBlock.result != null) {
                 ExpressionObject result = dependencyBlock.result.getValue(dependencyBlock, blocks);
-                if (result != null)
-                    System.out.println(dependencyBlock + "return: "+result.value.toString());
+                if (result != null && result.value != null)
+                    System.out.println("\treturn: "+result.value.toString());
             }
         }
         //

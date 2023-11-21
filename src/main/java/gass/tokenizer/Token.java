@@ -187,24 +187,22 @@ public class Token {
             final TokenType type = token.type;
 
             //
-            if (List.of(TokenType.BLOCK_ASSIGN, TokenType.FUNCTION_ASSIGN, TokenType.PROCEDURE_ASSIGN).contains(type) && i+1 < tokens.size())
-                // if no [a = b()]
-                if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains( tokens.get(i+1).type ))
-                    result.append("BLOCK[");
+            if (List.of(TokenType.BLOCK_ASSIGN, TokenType.FUNCTION_ASSIGN, TokenType.PROCEDURE_ASSIGN).contains(type) &&
+               ( (i+1 < tokens.size() && !List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains( tokens.get(i+1).type )) ||
+                  i+1 == tokens.size()) ) {
+                result.append("LB["); // local block assign
+                result.append(token.data != null ? token.data : typeToString(type));
+                result.append(']');
+                continue;
+            }
 
             result.append(token.data != null ? token.data : typeToString(type));
 
-            if (List.of(TokenType.BLOCK_ASSIGN, TokenType.FUNCTION_ASSIGN, TokenType.PROCEDURE_ASSIGN).contains(type))
-                if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains( tokens.get(i+1).type )) {
-                    result.append(']');
-                    continue;
-                }
-
             // if no ( { [ or ) } ]
-            if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains(type) && i+1 < tokens.size())
-                if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN,
-                             TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END,
-                             TokenType.BLOCK_BEGIN).contains( tokens.get(i+1).type )) {
+            if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains(type) && i+1 < tokens.size() &&
+                !List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN,
+                         TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END,
+                         TokenType.BLOCK_BEGIN).contains( tokens.get(i+1).type )) {
                     result.append(' ');
                 }
 
@@ -217,10 +215,9 @@ public class Token {
                 else if (token.type == TokenType.FIGURE_BLOCK_BEGIN) result.append('}');
                 else if (token.type == TokenType.SQUARE_BLOCK_BEGIN) result.append(']');
 
-                if (List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN, TokenType.BLOCK_BEGIN).contains( type ))
-                    if (i+1 < tokens.size())
-                        if (Token.checkOperator(tokens.get(i+1).type))
-                            result.append(' ');
+                if (List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN, TokenType.BLOCK_BEGIN).contains( type ) &&
+                    i+1 < tokens.size() && Token.checkOperator(tokens.get(i+1).type))
+                    result.append(' ');
             }
         }
         return result.toString();
