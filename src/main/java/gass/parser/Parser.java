@@ -45,7 +45,8 @@ public class Parser {
             declarateResult(block);   // return <- in global and local block
         }
 
-        parseAllBlockDependency();
+        for (final Block block : blocks)
+            parseBlock(block); // parse all global blocks, local ...
     }
     /** get error line tokens output */
     private String getErrorLineOutput(final int errorToken, final ArrayList<Token> tokens) {
@@ -309,13 +310,34 @@ public class Parser {
                 parseGlobalBlockAssign(localBlock);
         }
     }
+    /** pre-parse block */
+    private void preParseBlock(final String blockName, Block block) {
+        final String[] localBlockName = blockName.split(":");
+        final Block localBlock;
+        if (localBlockName.length == 1)
+            localBlock = Block.getBlock(blockName, blocks);
+        else
+            localBlock = block.localBlocks.get( Integer.parseInt(localBlockName[localBlockName.length-1]) );
+        declarateVariable(localBlock);
+        declarateResult(localBlock);
+        parseBlock(localBlock);
+    }
+    /** parse block */
+    private void parseBlock(final Block block) {
+        if (block == null) return;
+
+        // parse block
+        parseBlockDependency(0, block);
+        parseVariable(block);
+        if (block.result != null)
+            block.result.setValue(block, blocks);
+    }
     /** declarate variables */
     private void renameVariable(final ArrayList<Token> tokens, final Block block) {
         for (Token token : tokens) {
             if (token.type == TokenType.WORD) {
                 token.type = TokenType.VARIABLE_NAME;
-                System.out.println(">> "+(token.data != null? token.data : ""));
-                final int checkVariable = block.getVariableNum(token.data, blocks);
+                final int checkVariable = block.getVariableIndex(token.data, blocks);
                 if (checkVariable >= 0)
                     token.data += ':' + String.valueOf(checkVariable); // set variable name + num in variables ArrayList
                 else
@@ -325,14 +347,8 @@ public class Parser {
                 renameVariable(token.childrens, block);
             else
             //
-            if (token.type == TokenType.BLOCK_ASSIGN || token.type == TokenType.FUNCTION_ASSIGN) {
-                System.out.println("rename: "+token.data);
-                final String[] localBlockName = token.data.split(":");
-                final Block localBlock = block.localBlocks.get( Integer.parseInt(localBlockName[localBlockName.length-1]) );
-                declarateVariable(localBlock);
-                declarateResult(localBlock);
-                parseLocalBlock(localBlock);
-            }
+            if (token.type == TokenType.BLOCK_ASSIGN || token.type == TokenType.FUNCTION_ASSIGN)
+                preParseBlock(token.data, block);
         }
     }
     private void declarateVariable(final Block block) {
@@ -369,20 +385,9 @@ public class Parser {
                 }
                 //
             } else
-            if (currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN) {
-                System.out.println("no rename: "+currentToken.data);
-                final String[] localBlockName = currentToken.data.split(":");
-                final Block localBlock = block.localBlocks.get( Integer.parseInt(localBlockName[localBlockName.length-1]) );
-                declarateVariable(localBlock);
-                declarateResult(localBlock);
-                parseLocalBlock(localBlock);
-            }
+            if (currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN)
+                preParseBlock(currentToken.data, block);
         }
-        // local blocks
-        //if (block.localBlocks != null) {
-        //    for (final Block localBlock : block.localBlocks)
-        //        declarateVariable(localBlock, height+1);
-        //}
     }
     /** declarete return */
     private void declarateResult(final Block block) {
@@ -436,72 +441,9 @@ public class Parser {
         final ArrayList<Block> dependencyBlocksBuffer = Block.getBlocks(dependencyBlock.dependencyBlocks, blocks);
         if (dependencyBlocksBuffer == null) return;
 
-        final String depthTabs1 = "\t".repeat(depth);
-        final String depthTabs2 = depthTabs1+'\t';
         for (final Block dependency : dependencyBlocksBuffer) {
-            System.out.println(depthTabs1+dependency.name+':');
             parseBlockDependency(depth+1, dependency);
-
-            // parse block
-            // TO:DO: check block type
-            parseVariable(dependency);
-            if (dependency.result != null) {
-                final ExpressionObject result = dependency.result.getValue(dependency, blocks);
-                if (result != null && result.value != null)
-                    System.out.println(depthTabs2 + "return: "+result.value.toString());
-            }
-        }
-        //
-    }
-    /** parse local block */
-    private void parseLocalBlock(final Block localBlock) {
-        if (localBlock == null) return;
-
-        // parse block
-        parseBlockDependency(0, localBlock);
-        parseVariable(localBlock);
-        if (localBlock.result != null)
-            localBlock.result.getValue(localBlock, blocks);
-    }
-    /** parse local block */
-    private void parseLocalBlock(final int depth, final ArrayList<Block> localBlocks) {
-        if (localBlocks == null || localBlocks.isEmpty()) return;
-
-        final String depthTabs1 = "\t".repeat(depth);
-        final String depthTabs2 = depthTabs1+'\t';
-
-        for (final Block dependency : localBlocks) {
-            System.out.println(depthTabs1+dependency.name+':');
-            parseLocalBlock(depth+1, dependency.localBlocks);
-
-            // parse block
-            // TO:DO: check block type
-            parseBlockDependency(depth+1, dependency);
-            parseVariable(dependency);
-            if (dependency.result != null) {
-                final ExpressionObject result = dependency.result.getValue(dependency, blocks);
-                if (result != null && result.value != null)
-                    System.out.println(depthTabs2 + "return: "+result.value.toString());
-            }
-        }
-        //
-    }
-    /** parse all block dependency */
-    private void parseAllBlockDependency() {
-        for (final Block dependencyBlock : blocks) {
-            System.out.println("> "+dependencyBlock.name+':');
-
-            parseBlockDependency(1, dependencyBlock);
-            //parseLocalBlock(1, dependencyBlock.localBlocks);
-
-            // parse block
-            // TO:DO: fix bottom
-            parseVariable(dependencyBlock);
-            if (dependencyBlock.result != null) {
-                ExpressionObject result = dependencyBlock.result.getValue(dependencyBlock, blocks);
-                if (result != null && result.value != null)
-                    System.out.println("\treturn: "+result.value.toString());
-            }
+            parseBlock(dependency); // parse block
         }
         //
     }

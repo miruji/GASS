@@ -17,7 +17,4 @@ public class Variable {
         if (resultValue == null)
             resultValue = value.getValue(value.value, block, blocks);
     }
-    public ExpressionObject getValue() {
-        return resultValue;
-    }
 }

@@ -10,6 +10,7 @@ public class Expression {
     public Expression(final ArrayList<Token> value) {
         this.value = value;
     }
+    /** TokenType to ExpressionType */
     public static ExpressionType getType(final TokenType type) {
         if (type == TokenType.PLUS) return ExpressionType.PLUS;
         if (type == TokenType.MINUS) return ExpressionType.MINUS;
@@ -17,6 +18,7 @@ public class Expression {
         if (type == TokenType.DIVIDE) return ExpressionType.DIVIDE;
         return ExpressionType.NONE;
     }
+    /** calculate value */
     public static ExpressionObject calculate(final ArrayList<ExpressionObject> expressions) {
         for (int i = 1; i+1 < expressions.size();) {
             final ExpressionObject current = expressions.get(i);
@@ -43,6 +45,7 @@ public class Expression {
 
         return expressions.get(0);
     }
+    /** get expression value */
     public ExpressionObject getValue(ArrayList<Token> value, final Block block, final ArrayList<Block> blocks) {
         if (valueResult != null) return valueResult;
         // parse expression
@@ -55,11 +58,13 @@ public class Expression {
             } else
             // read block assign
             if (currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN) {
-                if (i+1 < value.size() && value.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) { // global func with parameters
+                // global func with parameters
+                if (i+1 < value.size() && value.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
                     i++;
                     final Block blockAssign = Block.getBlock(currentToken.data, blocks);
                     if (blockAssign != null) expressions.add(blockAssign.result.value);
-                } else { // local func with no parameters
+                // local func with no parameters
+                } else {
                     final Block blockAssign = Block.getBlock(currentToken.data, block.localBlocks);
                     if (blockAssign != null) expressions.add(blockAssign.result.value);
                 }
@@ -71,7 +76,7 @@ public class Expression {
                 final Variable variable;
                 if (variableAssign.length == 1) {
                     variable = block.getVariable(variableAssign[0], blocks);
-                    if (variable.getValue() == null) variable.setValue(block, blocks);
+                    if (variable.resultValue == null) variable.setValue(block, blocks);
                 }
                 else {
                     final Block b = block.getVariableBlock(variableAssign[0], blocks);
@@ -79,8 +84,8 @@ public class Expression {
                     variable.setValue(b, blocks);
                 }
 
-                if (variable.getValue() != null) {
-                    final ExpressionObject variableValue = new ExpressionObject(variable.getValue().type, variable.getValue().value);
+                if (variable.resultValue != null) {
+                    final ExpressionObject variableValue = new ExpressionObject(variable.resultValue.type, variable.resultValue.value);
                     expressions.add(variableValue);
                 }
             } else
@@ -91,8 +96,6 @@ public class Expression {
             // read operators
             if (Token.checkOperator(currentToken.type))
                 expressions.add(new ExpressionObject(getType(currentToken.type)));
-            //
-            //System.out.println(currentToken.type);
         }
         // until this moment we could not know how many expression objects
         if (expressions.isEmpty())

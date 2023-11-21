@@ -82,37 +82,40 @@ public class Block {
 
         variables.add( new Variable(name, ExpressionType.NUMBER, value) );
     }
-    /** get variable num by name */
-    public int getVariableNum(final String findName, final ArrayList<Block> blocks) {
-        if (findName == null || findName.isEmpty()) return -1;
-
-        // read this block
-        if (variables != null && !variables.isEmpty())
+    /** find variable */
+    public Variable findVariable(final String findName, final ArrayList<Variable> variables) {
+        if (findName != null && !findName.isEmpty() && variables != null && !variables.isEmpty())
             for (int i = variables.size()-1; i >= 0; i--) {
                 final Variable findVariable = variables.get(i);
                 if (Objects.equals(findVariable.name, findName))
+                    return findVariable;
+            }
+        return null;
+    }
+    public int findVariableIndex(final String findName, final ArrayList<Variable> variables) {
+        if (findName != null && !findName.isEmpty() && variables != null && !variables.isEmpty())
+            for (int i = variables.size()-1; i >= 0; i--) {
+                if (Objects.equals(variables.get(i).name, findName))
                     return i;
             }
+        return -1;
+    }
+    /** get variable num by name */
+    public int getVariableIndex(final String findName, final ArrayList<Block> blocks) {
+        if (findName == null || findName.isEmpty()) return -1;
 
-        // read next from global to local
-        final String[] upBlocksNames = name.split(":");
-        final Block upBlock = getBlock(upBlocksNames[0], blocks);
-        // read global block
-        if (upBlock.variables != null && !upBlock.variables.isEmpty())
-            for (int i = upBlock.variables.size()-1; i >= 0; i--) {
-                final Variable findVariable = upBlock.variables.get(i);
-                if (Objects.equals(findVariable.name, findName))
-                    return i;
-            }
-        // read local blocks to bottom
+        int index = findVariableIndex(findName, variables);
+        if (index != -1) return index;
+
+        final Block upBlock = getBlock(name.split(":")[0], blocks);
+        index = findVariableIndex(findName, upBlock.variables);
+        if (index != -1) return index;
+
         if (upBlock.localBlocks != null && !upBlock.localBlocks.isEmpty())
-            for (final Block localBlock : upBlock.localBlocks) {
+            for (Block localBlock : upBlock.localBlocks) {
                 if (localBlock.variables == null) break;
-                for (int i = localBlock.variables.size()-1; i >= 0; i--) {
-                    final Variable findVariable = localBlock.variables.get(i);
-                    if (Objects.equals(findVariable.name, findName))
-                        return i;
-                }
+                index = findVariableIndex(findName, localBlock.variables);
+                if (index != -1) return index;
             }
 
         return -1;
@@ -121,33 +124,18 @@ public class Block {
     public Block getVariableBlock(final String findName, final ArrayList<Block> blocks) {
         if (findName == null || findName.isEmpty()) return null;
 
-        // read this block
-        if (variables != null && !variables.isEmpty())
-            for (int i = variables.size()-1; i >= 0; i--) {
-                final Variable findVariable = variables.get(i);
-                if (Objects.equals(findVariable.name, findName))
-                    return this;
-            }
+        Variable variable = findVariable(findName, variables);
+        if (variable != null) return this;
 
-        // read next from global to local
-        final String[] upBlocksNames = name.split(":");
-        final Block upBlock = getBlock(upBlocksNames[0], blocks);
-        // read global block
-        if (upBlock.variables != null && !upBlock.variables.isEmpty())
-            for (int i = upBlock.variables.size()-1; i >= 0; i--) {
-                final Variable findVariable = upBlock.variables.get(i);
-                if (Objects.equals(findVariable.name, findName))
-                    return upBlock;
-            }
-        // read local blocks to bottom
+        final Block upBlock = getBlock(name.split(":")[0], blocks);
+        variable = findVariable(findName, upBlock.variables);
+        if (variable != null) return upBlock;
+
         if (upBlock.localBlocks != null && !upBlock.localBlocks.isEmpty())
-            for (final Block localBlock : upBlock.localBlocks) {
+            for (Block localBlock : upBlock.localBlocks) {
                 if (localBlock.variables == null) break;
-                for (int i = localBlock.variables.size()-1; i >= 0; i--) {
-                    final Variable findVariable = localBlock.variables.get(i);
-                    if (Objects.equals(findVariable.name, findName))
-                        return localBlock;
-                }
+                variable = findVariable(findName, localBlock.variables);
+                if (variable != null) return localBlock;
             }
 
         return null;
@@ -156,31 +144,18 @@ public class Block {
     public Variable getVariable(final String findName, final ArrayList<Block> blocks) {
         if (findName == null || findName.isEmpty()) return null;
 
-        // read this block
-        if (variables != null && !variables.isEmpty())
-            for (int i = variables.size()-1; i >= 0; i--) {
-                final Variable findVariable = variables.get(i);
-                if (Objects.equals(findVariable.name, findName))
-                    return findVariable;
-            }
+        Variable variable = findVariable(findName, variables);
+        if (variable != null) return variable;
 
-        // read next from global to local
-        final String[] upBlocksNames = name.split(":");
-        final Block upBlock = getBlock(upBlocksNames[0], blocks);
-        // read global block
-        if (upBlock.variables != null && !upBlock.variables.isEmpty())
-            for (int i = upBlock.variables.size()-1; i >= 0; i--) {
-                final Variable findVariable = upBlock.variables.get(i);
-                if (Objects.equals(findVariable.name, findName)) return findVariable;
-            }
-        // read local blocks to bottom
+        final Block upBlock = getBlock(name.split(":")[0], blocks);
+        variable = findVariable(findName, upBlock.variables);
+        if (variable != null) return variable;
+
         if (upBlock.localBlocks != null && !upBlock.localBlocks.isEmpty())
-            for (final Block localBlock : upBlock.localBlocks) {
+            for (Block localBlock : upBlock.localBlocks) {
                 if (localBlock.variables == null) break;
-                for (int i = localBlock.variables.size()-1; i >= 0; i--) {
-                    final Variable findVariable = localBlock.variables.get(i);
-                    if (Objects.equals(findVariable.name, findName)) return findVariable;
-                }
+                variable = findVariable(findName, localBlock.variables);
+                if (variable != null) return variable;
             }
 
         return null;
