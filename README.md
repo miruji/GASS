@@ -5,7 +5,7 @@ High-level script language for GAS
 
 *So, this is my long-standing idea to write my own programming language. This is probably 5 or 7, I don’t know which attempt. However, most of all I thought about the concept and made repeated attempts to write something working in this regard. The gass concept does not involve the creation or use of byte and bit code machines or ready-made solutions. This is too dependent and expensive. In addition, I do not expect any performance gains using this development approach. During my time on archlinux, I really liked it and I thought it would be cool to have something productive for writing programs. Previously I would have used C++, now I would use Java, however, I don't think they fit my requirements. So I thought it would be a good idea to write a compiler for the language that would produce pure assembly code as output. This is the most productive work option in my opinion. Previously, I made such an attempt and wrote a compiler in Pascal, the language syntax was C-similar and gave nasm code. I got pretty discouraged after one Internet user told me about LLVM, but now I think that my path was really the right one. Over the past few years, I have only strengthened my programming skills. That's why this gass project exists, which involves creating a high-level scripting language for compiling and obtaining code in gas (GNU Assembler).*
 
-Java will be used to develop the compiler, since it is cross-platform, low-cost and better suited for this task.
+Java will be used to develop the compiler, since it is cross-platform, low-cost and better suited for this task. Where possible, comments will be left on the code and the same syntax will be used.
 The working process is as follows:
   1. Getting code from a .gs file
   2. Tokenization and code parsing
@@ -15,9 +15,12 @@ The working process is as follows:
 
 Thus, the initial core of libraries and functionality will be written in gas, with the possibility of expanding the language itself. I don't think it's impossible to write anything in gas, so over time I plan to just add more functionality. However, I don’t have much experience in this at all, so there will be mistakes, there will be a lot of them, but the process will be exciting.
 
-Therefore, assistance to the project is welcome; when modifying, take into account the GPL3 license under which both GAS itself and this gass project are distributed.
+Therefore, assistance to the project is welcome; when modifying, take into account the GPL3 license under which both GAS itself and this gass project are distributed. Compiled programs and code created with and for gass are licensed at your discretion.
 
 ## Syntax template
+Typing: 
+> static, loose, implicit
+
 Global function
 > In case of implicit type specification for func or proc compiler will check the expected return and operations that  are addressed to the code block name
 ```
@@ -78,24 +81,26 @@ func main()
 \\ or
 func main
 
-\\ in local func & proc ->> no parameters
+\\ in local func & proc -> no parameters
 ```
 func & proc declaration rule
 ```
-global in global ->> none
-local in global ->> yes
-local in local ->> yes
+global in global -> none
+local in global -> yes
+local in local -> yes
 ```
 if & switch
 > As before, we use the usual temporary sections of code : end
 ```
 a = 10
 if (a == 10):
+  \\ block
 end
 
 a = 10
 switch (a):
   case 9:
+    \\ block
   end
   default:
     \\ go this
@@ -105,12 +110,15 @@ end
 cycles
 ```
 for (i = 0, i < 10, i++):
+ \\ block
 end
 
 while(true):
+ \\ block
 end
 
 dowhile(true): \\ template to:do:
+ \\ block
 end
 ```
 classes
@@ -133,19 +141,21 @@ end
 enum
 ```
 enum testList:
-    TEST1 = "123"
-    TEST2 = "321"
+  TEST1 = "123"
+  TEST2 = "321"
 end
 ```
-types & variables
-> All types are expected to be used as in gas. This should give more control when needed
+variables
+> Variables have a name and assigned value on the right.
 ```
 a = "Hello!"
-string a = "Hello!"
+a = func:
+  return 10
+end
 ```
 gas code
 ```
 asm:
-  # assembler here
+  # assembler block here
 end
 ```
