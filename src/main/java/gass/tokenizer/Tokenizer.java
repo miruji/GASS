@@ -4,14 +4,13 @@ import gass.io.log.Log;
 import gass.io.log.LogType;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class Tokenizer {
     public final ArrayList<Token> tokens; // tokenizer output tokens
     private int counter = 0;              // circle counter
     private final String input;           // tokenizer input text
     private final int inputLength;        // save input text length
-    public Tokenizer(String input) {
+    public Tokenizer(final String input) {
         //
         tokens = new ArrayList<>();
         this.input = input;
@@ -30,7 +29,7 @@ public class Tokenizer {
             if ( !addToken(getMathOperator(), TokenizerTokenType.DOUBLE_MATH, false) )       // read math (double) -> next set new type
                 {
                 // next read single chars and endline only
-                char c = input.charAt(counter);
+                final char c = input.charAt(counter);
                 if (c == '\u001F' && tokens.isEmpty()) counter++;
                 else {
                     // endline
@@ -76,10 +75,10 @@ public class Tokenizer {
         new Log(LogType.info,"Tokens size: "+tokens.size());
     }
     /** add new tokens if no empty / if == " " then set new type */
-    private boolean addToken(String data, TokenizerTokenType type, boolean clearData) {
-        if (!data.isEmpty()) {
+    private boolean addToken(String data, final TokenizerTokenType type, final boolean clearData) {
+        if (data != null && !data.isEmpty()) {
             // preparser rename types
-            TokenType newType  = Token.stringToType(data, type);
+            final TokenType newType  = Token.stringToType(data, type);
             if (clearData) data = null;
             //
             tokens.add(new Token(data, newType));
@@ -118,11 +117,11 @@ public class Tokenizer {
         if (input.charAt(counter) == quote) {
             if (counter+1 >= inputLength) new Log(LogType.error,"[Tokenizer]: Quote was not closed at the end");
 
-            StringBuilder result = new StringBuilder();
+            final StringBuilder result = new StringBuilder();
             boolean openSingleComment = false;
 
             while (counter < inputLength) {
-                char currentChar = input.charAt(counter);
+                final char currentChar = input.charAt(counter);
                 result.append(currentChar);
                 if (currentChar == quote) {
                     boolean noSlash = true;
@@ -150,13 +149,13 @@ public class Tokenizer {
     }
     /** get float 0.0 and .0 */
     private String getFloatNumber() {
-        StringBuilder result = new StringBuilder();
+        final StringBuilder result = new StringBuilder();
         boolean dot = false;
 
         int counterBuffer = counter;
         while (counterBuffer < inputLength) {
-            char currentChar = input.charAt(counterBuffer);
-            char nextChar = (counterBuffer+1 < inputLength) ? input.charAt(counterBuffer+1) : '\0';
+            final char currentChar = input.charAt(counterBuffer);
+            final char nextChar = (counterBuffer+1 < inputLength) ? input.charAt(counterBuffer+1) : '\0';
 
             if (Character.isDigit(currentChar)) {
                 result.append(currentChar);
@@ -176,10 +175,10 @@ public class Tokenizer {
     }
     /** get number */
     private String getNumber() {
-        StringBuilder result = new StringBuilder();
+        final StringBuilder result = new StringBuilder();
 
         while (counter < inputLength) {
-            char currentChar = input.charAt(counter);
+            final char currentChar = input.charAt(counter);
             if (Character.isDigit(currentChar)) {
                 result.append(currentChar);
                 counter++;
@@ -190,11 +189,11 @@ public class Tokenizer {
     }
     /** get word */
     private String getWord() {
-        StringBuilder result = new StringBuilder();
+        final StringBuilder result = new StringBuilder();
 
         while (counter < inputLength) {
-            char currentChar = input.charAt(counter);
-            char nextChar = (counter+1 < inputLength) ? input.charAt(counter+1) : '\0';
+            final char currentChar = input.charAt(counter);
+            final char nextChar = (counter+1 < inputLength) ? input.charAt(counter+1) : '\0';
 
             if (Character.isLetterOrDigit(currentChar) ||
                     (currentChar == '_' && !result.isEmpty() && Character.isLetterOrDigit(nextChar))) {
@@ -210,7 +209,7 @@ public class Tokenizer {
         if (counter+1 >= inputLength) return "";
 
         String result;
-        char nextChar = input.charAt(counter+1);
+        final char nextChar = input.charAt(counter+1);
         switch (input.charAt(counter)) {
             case '+' -> result = nextChar == '=' ? "+=" : (nextChar == '+' ? "++" : "");
             case '-' -> result = nextChar == '=' ? "-=" : (nextChar == '-' ? "--" : "");
@@ -229,7 +228,7 @@ public class Tokenizer {
         if (counter+1 >= inputLength) return "";
 
         String result;
-        char nextChar = input.charAt(counter+1);
+        final char nextChar = input.charAt(counter+1);
         switch (input.charAt(counter)) {
             case '!' -> result = nextChar == '=' ? "!=" : "";
             case '=' -> result = nextChar == '=' ? "==" : "";

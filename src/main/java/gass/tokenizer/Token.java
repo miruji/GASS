@@ -1,8 +1,6 @@
 package gass.tokenizer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Token {
     public String data;                // word, block num ...
@@ -17,141 +15,139 @@ public class Token {
         this.type = type;
         this.childrens = childrens;
     }
+    /** operators */
+    private static final Set<TokenType> OPERATORS;
+    static {
+        OPERATORS = new HashSet<>();
+        OPERATORS.add(TokenType.PLUS);
+        OPERATORS.add(TokenType.MINUS);
+        OPERATORS.add(TokenType.MULTIPLY);
+        OPERATORS.add(TokenType.DIVIDE);
+        OPERATORS.add(TokenType.EQUAL);
+        OPERATORS.add(TokenType.MODULO);
+        OPERATORS.add(TokenType.INCREMENT);
+        OPERATORS.add(TokenType.PLUS_EQUALS);
+        OPERATORS.add(TokenType.DECREMENT);
+        OPERATORS.add(TokenType.MINUS_EQUALS);
+        OPERATORS.add(TokenType.MULTIPLY_EQUALS);
+        OPERATORS.add(TokenType.DIVIDE_EQUALS);
+        OPERATORS.add(TokenType.QUESTION);
+        OPERATORS.add(TokenType.NOT);
+        OPERATORS.add(TokenType.NOT_EQUAL);
+        OPERATORS.add(TokenType.DOUBLE_EQUAL);
+        OPERATORS.add(TokenType.AND);
+        OPERATORS.add(TokenType.OR);
+    }
     /** check operator */
     public static boolean checkOperator(final TokenType type) {
-        // single math
-        if (type == TokenType.PLUS) return true;
-        if (type == TokenType.MINUS) return true;
-        if (type == TokenType.MULTIPLY) return true;
-        if (type == TokenType.DIVIDE) return true;
-        if (type == TokenType.EQUAL) return true;
-        if (type == TokenType.MODULO) return true;
-        // double math
-        if (type == TokenType.INCREMENT) return true;
-        if (type == TokenType.PLUS_EQUALS) return true;
-        if (type == TokenType.DECREMENT) return true;
-        if (type == TokenType.MINUS_EQUALS) return true;
-        if (type == TokenType.MULTIPLY_EQUALS) return true;
-        if (type == TokenType.DIVIDE_EQUALS) return true;
-        // single logical
-        if (type == TokenType.QUESTION) return true;
-        if (type == TokenType.NOT) return true;
-        // double logical
-        if (type == TokenType.NOT_EQUAL) return true;
-        if (type == TokenType.DOUBLE_EQUAL) return true;;
-        if (type == TokenType.AND) return true;
-        if (type == TokenType.OR) return true;
-        //
-        return false;
+        return OPERATORS.contains(type);
     }
     /** type to string */
     public static String typeToString(final TokenType type) {
-        // single math
-        if (type == TokenType.PLUS) return "+";
-        if (type == TokenType.MINUS) return "-";
-        if (type == TokenType.MULTIPLY) return "*";
-        if (type == TokenType.DIVIDE) return "/";
-        if (type == TokenType.EQUAL) return "=";
-        if (type == TokenType.MODULO) return "%";
-        // double math
-        if (type == TokenType.INCREMENT) return "++";
-        if (type == TokenType.PLUS_EQUALS) return "+=";
-        if (type == TokenType.DECREMENT) return "--";
-        if (type == TokenType.MINUS_EQUALS) return "-=";
-        if (type == TokenType.MULTIPLY_EQUALS) return "*=";
-        if (type == TokenType.DIVIDE_EQUALS) return "/=";
-        // single logical
-        if (type == TokenType.QUESTION) return "?";
-        if (type == TokenType.NOT) return "!";
-        // double logical
-        if (type == TokenType.NOT_EQUAL) return "!=";
-        if (type == TokenType.DOUBLE_EQUAL) return "==";
-        if (type == TokenType.AND) return "&&";
-        if (type == TokenType.OR) return "||";
-        // block
-        if (type == TokenType.BLOCK_BEGIN) return ":";
-        if (type == TokenType.CIRCLE_BLOCK_BEGIN) return "(";
-        if (type == TokenType.CIRCLE_BLOCK_END) return ")";
-        if (type == TokenType.FIGURE_BLOCK_BEGIN) return "{";
-        if (type == TokenType.FIGURE_BLOCK_END) return "}";
-        if (type == TokenType.SQUARE_BLOCK_BEGIN) return "[";
-        if (type == TokenType.SQUARE_BLOCK_END) return "]";
-        //
-        return "";
+        return switch (type) {
+            // single math
+            case PLUS -> "+";
+            case MINUS -> "-";
+            case MULTIPLY -> "*";
+            case DIVIDE -> "/";
+            case EQUAL -> "=";
+            case MODULO -> "%";
+            // double math
+            case INCREMENT -> "++";
+            case PLUS_EQUALS -> "+=";
+            case DECREMENT -> "--";
+            case MINUS_EQUALS -> "-=";
+            case MULTIPLY_EQUALS -> "*=";
+            case DIVIDE_EQUALS -> "/=";
+            // single logical
+            case QUESTION -> "?";
+            case NOT -> "!";
+            // double logical
+            case NOT_EQUAL -> "!=";
+            case DOUBLE_EQUAL -> "==";
+            case AND -> "&&";
+            case OR -> "||";
+            // block
+            case BLOCK_BEGIN -> ":";
+            case CIRCLE_BLOCK_BEGIN -> "(";
+            case CIRCLE_BLOCK_END -> ")";
+            case FIGURE_BLOCK_BEGIN -> "{";
+            case FIGURE_BLOCK_END -> "}";
+            case SQUARE_BLOCK_BEGIN -> "[";
+            case SQUARE_BLOCK_END -> "]";
+            // default
+            default -> "";
+        };
     }
     /** string to type. using pretype */
     public static TokenType stringToType(final String data, final TokenizerTokenType type) {
-        // words
-        if (type == TokenizerTokenType.NUMBER) return TokenType.NUMBER; else
-        if (type == TokenizerTokenType.FLOAT)  return TokenType.FLOAT; else
-        if (type == TokenizerTokenType.WORD) {
-            if (Objects.equals(data, "end")) return TokenType.END;
-            if (Objects.equals(data, "return")) return TokenType.RETURN_VALUE;
-            if (Objects.equals(data, "func")) return TokenType.FUNCTION;
-            if (Objects.equals(data, "proc")) return TokenType.PROCEDURE;
-            if (Objects.equals(data, "private")) return TokenType.PRIVATE;
-            if (Objects.equals(data, "public")) return TokenType.PUBLIC;
-            if (Objects.equals(data, "enum")) return TokenType.ENUM;
-            else return TokenType.WORD;
-        } else
-        // single math
-        if (type == TokenizerTokenType.SINGLE_MATH) {
-            if (Objects.equals(data, "+")) return TokenType.PLUS;
-            if (Objects.equals(data, "-")) return TokenType.MINUS;
-            if (Objects.equals(data, "*")) return TokenType.MULTIPLY;
-            if (Objects.equals(data, "/")) return TokenType.DIVIDE;
-            if (Objects.equals(data, "=")) return TokenType.EQUAL;
-            if (Objects.equals(data, "%")) return TokenType.MODULO;
-        } else
-        // double math
-        if (type == TokenizerTokenType.DOUBLE_MATH) {
-            if (Objects.equals(data, "++")) return TokenType.INCREMENT;
-            if (Objects.equals(data, "+=")) return TokenType.PLUS_EQUALS;
-            if (Objects.equals(data, "--")) return TokenType.DECREMENT;
-            if (Objects.equals(data, "-=")) return TokenType.MINUS_EQUALS;
-            if (Objects.equals(data, "*=")) return TokenType.MULTIPLY_EQUALS;
-            if (Objects.equals(data, "/=")) return TokenType.DIVIDE_EQUALS;
-        } else
-        // single logical
-        if (type == TokenizerTokenType.SINGLE_LOGICAL) {
-            if (Objects.equals(data, "?")) return TokenType.QUESTION;
-            if (Objects.equals(data, "!")) return TokenType.NOT;
-        } else
-        // double logical
-        if (type == TokenizerTokenType.DOUBLE_LOGICAL) {
-            if (Objects.equals(data, "!=")) return TokenType.NOT_EQUAL;
-            if (Objects.equals(data, "==")) return TokenType.DOUBLE_EQUAL;
-            if (Objects.equals(data, "&&")) return TokenType.AND;
-            if (Objects.equals(data, "||")) return TokenType.OR;
-        } else
-        // quote
-        if (type == TokenizerTokenType.BACK_QUOTE)   return TokenType.BACK_QUOTE;   else
-        if (type == TokenizerTokenType.SINGLE_QUOTE) return TokenType.SINGLE_QUOTE; else
-        if (type == TokenizerTokenType.DOUBLE_QUOTE) return TokenType.DOUBLE_QUOTE; else
-        // block
-        if (type == TokenizerTokenType.BLOCK_BEGIN) return TokenType.BLOCK_BEGIN; else
-        if (type == TokenizerTokenType.CIRCLE_BLOCK) {
-            if (Objects.equals(data, "(")) return TokenType.CIRCLE_BLOCK_BEGIN;
-            else                              return TokenType.CIRCLE_BLOCK_END;
-        }
-        else
-        if (type == TokenizerTokenType.FIGURE_BLOCK) {
-            if (Objects.equals(data, "{")) return TokenType.FIGURE_BLOCK_BEGIN;
-            else                              return TokenType.FIGURE_BLOCK_END;
-        }
-        else
-        if (type == TokenizerTokenType.SQUARE_BLOCK) {
-            if (Objects.equals(data, "[")) return TokenType.SQUARE_BLOCK_BEGIN;
-            else                              return TokenType.SQUARE_BLOCK_END;
-        }
-        else
-        // endline
-        if (type == TokenizerTokenType.ENDLINE) return TokenType.ENDLINE; else
-        // ~
-        if (type == TokenizerTokenType.COMMA) return TokenType.COMMA; else
-        if (type == TokenizerTokenType.DOT) return TokenType.DOT;
-        //
-        return TokenType.NONE;
+        return switch (type) {
+            case NUMBER -> TokenType.NUMBER;
+            case FLOAT -> TokenType.FLOAT;
+            case WORD -> switch (data) {
+                case "end" -> TokenType.END;
+                case "return" -> TokenType.RETURN_VALUE;
+                case "func" -> TokenType.FUNCTION;
+                case "proc" -> TokenType.PROCEDURE;
+                case "private" -> TokenType.PRIVATE;
+                case "public" -> TokenType.PUBLIC;
+                case "enum" -> TokenType.ENUM;
+                default -> TokenType.WORD;
+            };
+            case SINGLE_MATH -> switch (data) {
+                case "+" -> TokenType.PLUS;
+                case "-" -> TokenType.MINUS;
+                case "*" -> TokenType.MULTIPLY;
+                case "/" -> TokenType.DIVIDE;
+                case "=" -> TokenType.EQUAL;
+                case "%" -> TokenType.MODULO;
+                default -> TokenType.NONE;
+            };
+            case DOUBLE_MATH -> switch (data) {
+                case "++" -> TokenType.INCREMENT;
+                case "+=" -> TokenType.PLUS_EQUALS;
+                case "--" -> TokenType.DECREMENT;
+                case "-=" -> TokenType.MINUS_EQUALS;
+                case "*=" -> TokenType.MULTIPLY_EQUALS;
+                case "/=" -> TokenType.DIVIDE_EQUALS;
+                default -> TokenType.NONE;
+            };
+            case SINGLE_LOGICAL -> switch (data) {
+                case "?" -> TokenType.QUESTION;
+                case "!" -> TokenType.NOT;
+                default -> TokenType.NONE;
+            };
+            case DOUBLE_LOGICAL -> switch (data) {
+                case "!=" -> TokenType.NOT_EQUAL;
+                case "==" -> TokenType.DOUBLE_EQUAL;
+                case "&&" -> TokenType.AND;
+                case "||" -> TokenType.OR;
+                default -> TokenType.NONE;
+            };
+            case BACK_QUOTE -> TokenType.BACK_QUOTE;
+            case SINGLE_QUOTE -> TokenType.SINGLE_QUOTE;
+            case DOUBLE_QUOTE -> TokenType.DOUBLE_QUOTE;
+            case BLOCK_BEGIN -> TokenType.BLOCK_BEGIN;
+            case CIRCLE_BLOCK -> {
+                if (Objects.equals(data, "("))
+                    yield TokenType.CIRCLE_BLOCK_BEGIN;
+                yield TokenType.CIRCLE_BLOCK_END;
+            }
+            case FIGURE_BLOCK -> {
+                if (Objects.equals(data, "{"))
+                    yield TokenType.FIGURE_BLOCK_BEGIN;
+                yield TokenType.FIGURE_BLOCK_END;
+            }
+            case SQUARE_BLOCK -> {
+                if (Objects.equals(data, "["))
+                    yield TokenType.SQUARE_BLOCK_BEGIN;
+                yield TokenType.SQUARE_BLOCK_END;
+            }
+            case ENDLINE -> TokenType.ENDLINE;
+            case COMMA -> TokenType.COMMA;
+            case DOT -> TokenType.DOT;
+            default -> TokenType.NONE;
+        };
     }
     /** add child token to this token */
     public void addChildren(final Token child) {
@@ -160,28 +156,27 @@ public class Token {
     }
     /** add child tokens to this token */
     public void addChildrens(final ArrayList<Token> childrens) {
-        for (Token children : childrens)
+        for (final Token children : childrens)
             addChildren(children);
     }
     /** tokens tree output */
     public static String outputChildrens(final Token token, final int depth) {
-        StringBuilder output = new StringBuilder();
+        final StringBuilder output = new StringBuilder();
         output.append("\t".repeat(Math.max(0, depth)));
 
-        if (token.data != null)
+        if (token.data != null && !token.data.isEmpty())
             output.append(token.type).append(" [").append(token.data).append("]\n");
         else
             output.append(token.type).append('\n');
 
-        if (token.childrens != null) {
-            for (Token child : token.childrens)
+        if (token.childrens != null && !token.childrens.isEmpty())
+            for (final Token child : token.childrens)
                 output.append(outputChildrens(child, depth+1));
-        }
         return output.toString();
     }
     /** tokens to string */
     public static String tokensToString(final ArrayList<Token> tokens, final boolean readChildrens) {
-        StringBuilder result = new StringBuilder();
+        final StringBuilder result = new StringBuilder();
         for (int i = 0; i < tokens.size(); i++) {
             final Token token = tokens.get(i);
             final TokenType type = token.type;
@@ -195,7 +190,7 @@ public class Token {
                 result.append(']');
                 continue;
             }
-
+            // else -> basic
             result.append(token.data != null ? token.data : typeToString(type));
 
             // if no ( { [ or ) } ]
@@ -208,7 +203,7 @@ public class Token {
 
             // childrens
             if (readChildrens) {
-                if (token.childrens != null)
+                if (token.childrens != null && !token.childrens.isEmpty())
                     result.append( tokensToString(token.childrens, true) );
                 // add close
                 if (token.type == TokenType.CIRCLE_BLOCK_BEGIN) result.append(')');

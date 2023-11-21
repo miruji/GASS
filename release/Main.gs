@@ -18,15 +18,11 @@ func main():
   \\ if return then auto return 0
 end
 *\
-func a():
-  return 20
-end
 func main():
-  c = 10
-  c = func:
-    a = 5
-    return 15+a()+a
+  a = 5
+  b = func:
+    c = a+5
+    return c
   end
-  c = c+10
-  return c
+  a = b \\ 10
 end

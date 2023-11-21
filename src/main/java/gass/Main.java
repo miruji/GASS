@@ -44,18 +44,16 @@ public class Main {
         final Parser parser = new Parser(tokenizer.tokens);
 
         outputBuffer = new StringBuilder("Parser output: [\n");
-        for (final Token t : parser.tokens) {
+        for (final Token t : parser.tokens)
             outputBuffer.append(Token.outputChildrens(t, 1));
-        }
         new Log(LogType.info, outputBuffer.append("] \n").toString());
 
         // enums
         outputBuffer = new StringBuilder("Enums: [\n");
         for (final Enum e : parser.enums) {
             outputBuffer.append("\t[").append(e.name).append("]: [\n");
-            for (final Token t : e.tokens) {
+            for (final Token t : e.tokens)
                 outputBuffer.append(Token.outputChildrens(t, 2));
-            }
             outputBuffer.append("\t}\n");
         }
         new Log(LogType.info, outputBuffer.append("] \n").toString());
@@ -74,7 +72,7 @@ public class Main {
         // global functions
         outputBuffer = new StringBuilder("Global blocks:\n");
         for (final Block b : parser.blocks) {
-            outputBuffer.append(Block.outputLocalBlocks(b, 1, 0));
+            outputBuffer.append(Block.outputLocalBlocks(b, 1));
         }
         new Log(LogType.info, outputBuffer.toString());
     }

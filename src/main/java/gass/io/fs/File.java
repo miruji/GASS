@@ -1,7 +1,6 @@
 package gass.io.fs;
 
 import gass.io.log.Log;
-import gass.io.log.LogFlag;
 import gass.io.log.LogType;
 
 import java.io.IOException;
@@ -27,7 +26,7 @@ public class File {
         }
     }
     public static void stringToFile(final String filePath, final String content) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+        try (final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             writer.write(content);
             new Log(LogType.info,"Content has been written to the file");
         } catch (IOException e) {

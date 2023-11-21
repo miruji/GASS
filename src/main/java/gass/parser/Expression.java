@@ -43,35 +43,43 @@ public class Expression {
 
         return expressions.get(0);
     }
-    public ExpressionObject getValue(final Block block, final ArrayList<Block> blocks) {
+    public ExpressionObject getValue(ArrayList<Token> value, final Block block, final ArrayList<Block> blocks) {
         if (valueResult != null) return valueResult;
         // parse expression
         final ArrayList<ExpressionObject> expressions = new ArrayList<>();
         for (int i = 0; i < value.size(); i++) {
             final Token currentToken = value.get(i);
+            // read circle bracket
+            if (currentToken.type == TokenType.CIRCLE_BLOCK_BEGIN && currentToken.childrens != null && !currentToken.childrens.isEmpty()) {
+                expressions.add(getValue(currentToken.childrens, block, blocks));
+            } else
             // read block assign
             if (currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN) {
                 if (i+1 < value.size() && value.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) { // global func with parameters
-                    final Block blockAssign = Block.getBlock(blocks, currentToken.data);
-                    if (blockAssign != null)
-                        expressions.add(blockAssign.result.value);
+                    i++;
+                    final Block blockAssign = Block.getBlock(currentToken.data, blocks);
+                    if (blockAssign != null) expressions.add(blockAssign.result.value);
                 } else { // local func with no parameters
-                    final Block blockAssign = Block.getBlock(block.localBlocks, currentToken.data);
-                    if (blockAssign != null)
-                        expressions.add(blockAssign.result.value);
+                    final Block blockAssign = Block.getBlock(currentToken.data, block.localBlocks);
+                    if (blockAssign != null) expressions.add(blockAssign.result.value);
                 }
             } else
             // read variables
             if (currentToken.type == TokenType.VARIABLE_NAME) {
-                String[] variableAssign = currentToken.data.split(":");
+                final String[] variableAssign = currentToken.data.split(":");
 
                 final Variable variable;
-                if (variableAssign.length == 1)
-                    variable = block.getVariable(variableAssign[0]);
-                else
-                    variable = block.variables.get( Integer.parseInt(variableAssign[1]) );
+                if (variableAssign.length == 1) {
+                    variable = block.getVariable(variableAssign[0], blocks);
+                    if (variable.getValue() == null) variable.setValue(block, blocks);
+                }
+                else {
+                    final Block b = block.getVariableBlock(variableAssign[0], blocks);
+                    variable = b.variables.get( Integer.parseInt(variableAssign[1]) );
+                    variable.setValue(b, blocks);
+                }
 
-                if (variable != null && variable.getValue() != null) {
+                if (variable.getValue() != null) {
                     final ExpressionObject variableValue = new ExpressionObject(variable.getValue().type, variable.getValue().value);
                     expressions.add(variableValue);
                 }
@@ -87,16 +95,16 @@ public class Expression {
             //System.out.println(currentToken.type);
         }
         // until this moment we could not know how many expression objects
-        if (expressions.isEmpty()) {
+        if (expressions.isEmpty())
+            // null
             valueResult = null;
-            return null;
-        }
-        if (expressions.size() < 3) { // < 3 ok?
+        else
+        if (expressions.size() < 3)
+            // < 3
             valueResult = expressions.get(0);
-            return valueResult;
-        }
-        // parse expression > 3 objects
-        valueResult = calculate(expressions);
+        else
+            // parse expression > 3 objects
+            valueResult = calculate(expressions);
         return valueResult;
     }
 }

@@ -6,7 +6,6 @@ import gass.tokenizer.Token;
 import gass.tokenizer.TokenType;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
 
@@ -21,7 +20,7 @@ public class Parser {
         // check func     => check code exceptions
         // rename func    => rename
         // delete func    => delete
-        // declarate func => add info to block
+        // declarate func => declarate
         // parse func     => parse code
 
         checkAssign(); // check (= ENDLINE)
@@ -33,15 +32,18 @@ public class Parser {
         parseEnum();  // enum
         parseClass(); // public/private class
 
-        parseGlobalBlock();          // func/proc/none global block
-        parseAllLocalBlock();        // func/proc/none local block
-        checkProcedureAssign();      // check (= PROCEDURE_ASSIGN)
-        parseAllGlobalBlockAssign(); // global assign to func/proc/none
+        parseGlobalBlock();                      // func/proc/none global block
+        for (final Block block : blocks)
+            declarateLocalBlock(block, 1); // func/proc/none local block
+        checkProcedureAssign();                  // check (= PROCEDURE_ASSIGN)
+        for (final Block block : blocks)
+            parseGlobalBlockAssign(block);       // global assign to func/proc/none
 
-        for (final Block block : blocks)
+
+        for (final Block block : blocks) {
             declarateVariable(block); // variables <- in global and local blocks
-        for (final Block block : blocks)
-            declarateResult(block);  // return <- in global and local bloc
+            declarateResult(block);   // return <- in global and local block
+        }
 
         parseAllBlockDependency();
     }
@@ -234,11 +236,6 @@ public class Parser {
         }
         //
     }
-    /** parse all local block proc/func/none */
-    private void parseAllLocalBlock() {
-        for (final Block block : blocks)
-            declarateLocalBlock(block, 1);
-    }
     /** cycle parse local block proc/func/none  */
     private void declarateLocalBlock(final Block block, final int depth) {
         if (block.tokens != null) { // if no tokens in global block => no local blocks
@@ -253,11 +250,12 @@ public class Parser {
                     if (block.tokens.get(i-1).type == TokenType.FUNCTION)
                         newBlockType = BlockType.FUNCTION;
 
-                    final Block newBlock = new Block(newBlockType, block.tokens.get(i).childrens);
+                    final String localBlockName = block.name+':'+assignNum;
+                    final Block newBlock = new Block(localBlockName, newBlockType, block.tokens.get(i).childrens);
 
                     if (newBlockType == BlockType.NONE) {
                         block.tokens.get(i).type = TokenType.BLOCK_ASSIGN;
-                        block.tokens.get(i).data = String.valueOf(assignNum);
+                        block.tokens.get(i).data = localBlockName;
                         block.tokens.get(i).childrens = null;
                     } else {
                         if (newBlockType == BlockType.PROCEDURE)
@@ -267,10 +265,10 @@ public class Parser {
                         block.tokens.remove(i-1);
                         i--;
 
-                        block.tokens.get(i).data = String.valueOf(assignNum);
-                        assignNum++;
+                        block.tokens.get(i).data = localBlockName;
                         block.tokens.get(i).childrens = null;
                     }
+                    assignNum++;
 
                     declarateLocalBlock(newBlock, depth+1);
                     block.addLocalBlock(newBlock);
@@ -311,12 +309,32 @@ public class Parser {
                 parseGlobalBlockAssign(localBlock);
         }
     }
-    /**  parse all global assign to func/proc/none */
-    private void parseAllGlobalBlockAssign() {
-        for (final Block block : blocks)
-            parseGlobalBlockAssign(block);
-    }
     /** declarate variables */
+    private void renameVariable(final ArrayList<Token> tokens, final Block block) {
+        for (Token token : tokens) {
+            if (token.type == TokenType.WORD) {
+                token.type = TokenType.VARIABLE_NAME;
+                System.out.println(">> "+(token.data != null? token.data : ""));
+                final int checkVariable = block.getVariableNum(token.data, blocks);
+                if (checkVariable >= 0)
+                    token.data += ':' + String.valueOf(checkVariable); // set variable name + num in variables ArrayList
+                else
+                    new Log(LogType.error, "Expected existing variable ["+token.data+"] in block ["+block.name+']');
+            } else
+            if (token.type == TokenType.CIRCLE_BLOCK_BEGIN && token.childrens != null && !token.childrens.isEmpty())
+                renameVariable(token.childrens, block);
+            else
+            //
+            if (token.type == TokenType.BLOCK_ASSIGN || token.type == TokenType.FUNCTION_ASSIGN) {
+                System.out.println("rename: "+token.data);
+                final String[] localBlockName = token.data.split(":");
+                final Block localBlock = block.localBlocks.get( Integer.parseInt(localBlockName[localBlockName.length-1]) );
+                declarateVariable(localBlock);
+                declarateResult(localBlock);
+                parseLocalBlock(localBlock);
+            }
+        }
+    }
     private void declarateVariable(final Block block) {
         final ArrayList<Token> tokens = block.tokens;
         if (tokens == null || tokens.isEmpty()) return;
@@ -341,29 +359,30 @@ public class Parser {
                             i--;
                             break;
                         } else {
-                            if (nextToken.type == TokenType.WORD) {
-                                nextToken.type = TokenType.VARIABLE_NAME;
-                                final int checkVariable = block.getVariableNum(nextToken.data);
-                                if (checkVariable >= 0)
-                                    nextToken.data += ':'+String.valueOf(checkVariable);
-                                else
-                                    new Log(LogType.error, "Expected existing variable ["+nextToken.data+"] in block ["+block.name+']');
-                            }
                             // checkVariable
                             variableValue.add(nextToken);
                             tokens.remove(i);
                         }
                     }
+                    renameVariable(variableValue, block);
                     block.addVariable(currentToken.data, variableValue);
                 }
                 //
+            } else
+            if (currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN) {
+                System.out.println("no rename: "+currentToken.data);
+                final String[] localBlockName = currentToken.data.split(":");
+                final Block localBlock = block.localBlocks.get( Integer.parseInt(localBlockName[localBlockName.length-1]) );
+                declarateVariable(localBlock);
+                declarateResult(localBlock);
+                parseLocalBlock(localBlock);
             }
         }
         // local blocks
-        if (block.localBlocks != null) {
-            for (final Block localBlock : block.localBlocks)
-                declarateVariable(localBlock);
-        }
+        //if (block.localBlocks != null) {
+        //    for (final Block localBlock : block.localBlocks)
+        //        declarateVariable(localBlock, height+1);
+        //}
     }
     /** declarete return */
     private void declarateResult(final Block block) {
@@ -391,6 +410,7 @@ public class Parser {
                             tokens.remove(i);
                         }
                     }
+                    renameVariable(resultValue, block);
                     block.result = new BlockResult(resultValue);
                 }
             }
@@ -411,7 +431,11 @@ public class Parser {
     }
     /** parse block dependency */
     private void parseBlockDependency(final int depth, final Block dependencyBlock) {
-        final ArrayList<Block> dependencyBlocksBuffer = Block.getDependencyBlocks(blocks, dependencyBlock.dependencyBlocks);
+        if (dependencyBlock == null) return;
+
+        final ArrayList<Block> dependencyBlocksBuffer = Block.getBlocks(dependencyBlock.dependencyBlocks, blocks);
+        if (dependencyBlocksBuffer == null) return;
+
         final String depthTabs1 = "\t".repeat(depth);
         final String depthTabs2 = depthTabs1+'\t';
         for (final Block dependency : dependencyBlocksBuffer) {
@@ -430,24 +454,36 @@ public class Parser {
         //
     }
     /** parse local block */
+    private void parseLocalBlock(final Block localBlock) {
+        if (localBlock == null) return;
+
+        // parse block
+        parseBlockDependency(0, localBlock);
+        parseVariable(localBlock);
+        if (localBlock.result != null)
+            localBlock.result.getValue(localBlock, blocks);
+    }
+    /** parse local block */
     private void parseLocalBlock(final int depth, final ArrayList<Block> localBlocks) {
+        if (localBlocks == null || localBlocks.isEmpty()) return;
+
         final String depthTabs1 = "\t".repeat(depth);
         final String depthTabs2 = depthTabs1+'\t';
-        if (localBlocks != null && !localBlocks.isEmpty())
-            for (final Block dependency : localBlocks) {
-                System.out.println(depthTabs1+dependency.name+':');
-                parseLocalBlock(depth+1, dependency.localBlocks);
 
-                // parse block
-                // TO:DO: check block type
-                parseBlockDependency(depth+1, dependency);
-                parseVariable(dependency);
-                if (dependency.result != null) {
-                    final ExpressionObject result = dependency.result.getValue(dependency, blocks);
-                    if (result != null && result.value != null)
-                        System.out.println(depthTabs2 + "return: "+result.value.toString());
-                }
+        for (final Block dependency : localBlocks) {
+            System.out.println(depthTabs1+dependency.name+':');
+            parseLocalBlock(depth+1, dependency.localBlocks);
+
+            // parse block
+            // TO:DO: check block type
+            parseBlockDependency(depth+1, dependency);
+            parseVariable(dependency);
+            if (dependency.result != null) {
+                final ExpressionObject result = dependency.result.getValue(dependency, blocks);
+                if (result != null && result.value != null)
+                    System.out.println(depthTabs2 + "return: "+result.value.toString());
             }
+        }
         //
     }
     /** parse all block dependency */
@@ -456,7 +492,7 @@ public class Parser {
             System.out.println("> "+dependencyBlock.name+':');
 
             parseBlockDependency(1, dependencyBlock);
-            parseLocalBlock(1, dependencyBlock.localBlocks);
+            //parseLocalBlock(1, dependencyBlock.localBlocks);
 
             // parse block
             // TO:DO: fix bottom

@@ -11,7 +11,7 @@ public class BlockResult {
     }
     public ExpressionObject getValue(final Block block, final ArrayList<Block> blocks) {
         if (value == null)
-            value = expression.getValue(block, blocks);
+            value = expression.getValue(expression.value, block, blocks);
         return value;
     }
 }

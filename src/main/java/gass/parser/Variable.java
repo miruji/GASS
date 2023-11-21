@@ -15,7 +15,7 @@ public class Variable {
     }
     public void setValue(final Block block, final ArrayList<Block> blocks) {
         if (resultValue == null)
-            resultValue = this.value.getValue(block, blocks);
+            resultValue = value.getValue(value.value, block, blocks);
     }
     public ExpressionObject getValue() {
         return resultValue;

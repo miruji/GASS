@@ -8,17 +8,14 @@ public class Log {
             final StackTraceElement element = stackTrace[i];
             final String className = element.getClassName();
             final String methodName = element.getMethodName();
-            if (!className.equals(Log.class.getName()) && !methodName.equals("getStackTraceCallInfo")) {
+            if (!className.equals(Log.class.getName()) && !methodName.equals("getStackTraceCallInfo"))
                 return className + ":" + methodName;
-            }
         }
         return "unknown";
     }
     private boolean containsFlag(final LogFlag flag, final LogFlag[] flags) {
         for (final LogFlag f : flags)
-            if (f == flag)
-                return true;
-
+            if (f == flag) return true;
         return false;
     }
     public Log(final LogType type, final String message, final LogFlag... flags) {
