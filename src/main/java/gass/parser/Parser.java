@@ -338,9 +338,12 @@ public class Parser {
             if (token.type == TokenType.WORD) {
                 token.type = TokenType.VARIABLE_NAME;
                 final int checkVariable = block.getVariableIndex(token.data, blocks);
-                if (checkVariable >= 0)
-                    token.data += ':' + String.valueOf(checkVariable); // set variable name + num in variables ArrayList
-                else
+                if (checkVariable >= 0) {
+                    if (block.findVariableIndex(false, token.data, block.variables) == -1)
+                        token.data += ":-1";
+                    else
+                        token.data += ':' + String.valueOf(checkVariable); // set variable name + num in variables ArrayList
+                } else
                     new Log(LogType.error, "Expected existing variable ["+token.data+"] in block ["+block.name+']');
             } else
             if (token.type == TokenType.CIRCLE_BLOCK_BEGIN && token.childrens != null && !token.childrens.isEmpty())

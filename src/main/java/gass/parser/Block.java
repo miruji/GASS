@@ -92,40 +92,50 @@ public class Block {
             }
         return null;
     }
-    public int findVariableIndex(final String findName, final ArrayList<Variable> variables) {
+    public int findVariableIndex(final boolean endStart, final String findName, final ArrayList<Variable> variables) {
         if (findName != null && !findName.isEmpty() && variables != null && !variables.isEmpty())
-            for (int i = variables.size()-1; i >= 0; i--) {
-                if (Objects.equals(variables.get(i).name, findName))
-                    return i;
-            }
+            if (endStart)
+                for (int i = variables.size()-1; i >= 0; i--) {
+                    if (Objects.equals(variables.get(i).name, findName))
+                        return i;
+                }
+            else
+                for (int i = 0; i < variables.size(); i++) {
+                    if (Objects.equals(variables.get(i).name, findName))
+                        return i;
+                }
         return -1;
     }
     /** get variable num by name */
     public int getVariableIndex(final String findName, final ArrayList<Block> blocks) {
         if (findName == null || findName.isEmpty()) return -1;
 
-        int index = findVariableIndex(findName, variables);
+        int index = findVariableIndex(true, findName, variables);
         if (index != -1) return index;
 
         final Block upBlock = getBlock(name.split(":")[0], blocks);
-        index = findVariableIndex(findName, upBlock.variables);
+        index = findVariableIndex(true, findName, upBlock.variables);
         if (index != -1) return index;
 
         if (upBlock.localBlocks != null && !upBlock.localBlocks.isEmpty())
             for (Block localBlock : upBlock.localBlocks) {
                 if (localBlock.variables == null) break;
-                index = findVariableIndex(findName, localBlock.variables);
+                index = findVariableIndex(true, findName, localBlock.variables);
                 if (index != -1) return index;
             }
 
         return -1;
     }
     /** get variable block by name */
-    public Block getVariableBlock(final String findName, final ArrayList<Block> blocks) {
+    public Block getVariableBlock(final boolean firstReadThis, final String findName, final ArrayList<Block> blocks) {
         if (findName == null || findName.isEmpty()) return null;
 
-        Variable variable = findVariable(findName, variables);
-        if (variable != null) return this;
+
+        Variable variable;
+        if (firstReadThis) {
+            variable = findVariable(findName, variables);
+            if (variable != null) return this;
+        }
 
         final Block upBlock = getBlock(name.split(":")[0], blocks);
         variable = findVariable(findName, upBlock.variables);
@@ -137,6 +147,11 @@ public class Block {
                 variable = findVariable(findName, localBlock.variables);
                 if (variable != null) return localBlock;
             }
+
+        if (!firstReadThis) {
+            variable = findVariable(findName, variables);
+            if (variable != null) return this;
+        }
 
         return null;
     }
@@ -157,6 +172,15 @@ public class Block {
                 variable = findVariable(findName, localBlock.variables);
                 if (variable != null) return variable;
             }
+
+        return null;
+    }
+    public Variable getVariable(final String findName) {
+        if (findName == null || findName.isEmpty() || variables == null || variables.isEmpty()) return null;
+
+        for (final Variable findVariable : variables)
+            if (Objects.equals(findVariable.name, findName))
+                return findVariable;
 
         return null;
     }

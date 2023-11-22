@@ -195,9 +195,9 @@ public class Token {
 
             // if no ( { [ or ) } ]
             if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains(type) && i+1 < tokens.size() &&
-                !List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN,
+                (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN,
                          TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END,
-                         TokenType.BLOCK_BEGIN).contains( tokens.get(i+1).type )) {
+                         TokenType.BLOCK_BEGIN).contains( tokens.get(i+1).type ) || checkOperator(type)) ) {
                     result.append(' ');
                 }
 

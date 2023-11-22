@@ -20,6 +20,30 @@ public class Expression {
     }
     /** calculate value */
     public static ExpressionObject calculate(final ArrayList<ExpressionObject> expressions) {
+        // multiply and divide
+        for (int i = 1; i+1 < expressions.size();) {
+            final ExpressionObject current = expressions.get(i);
+            final ExpressionObject back = expressions.get(i-1);
+            final ExpressionObject next = expressions.get(i+1);
+
+            if (back.type == ExpressionType.NUMBER && next.type == ExpressionType.NUMBER) {
+                final int backValue = Integer.parseInt(back.value.toString());
+                final int nextValue = Integer.parseInt(next.value.toString());
+
+                if (current.type == ExpressionType.MULTIPLY)
+                    back.value = backValue * nextValue;
+                else if (current.type == ExpressionType.DIVIDE)
+                    back.value = backValue / nextValue;
+                else {
+                    i++; // skip
+                    continue;
+                }
+
+                expressions.remove(i); // remove operator
+                expressions.remove(i); // remove next
+            } else i++; // skip
+        }
+        // plus and minus
         for (int i = 1; i+1 < expressions.size();) {
             final ExpressionObject current = expressions.get(i);
             final ExpressionObject back = expressions.get(i-1);
@@ -33,10 +57,10 @@ public class Expression {
                     back.value = backValue + nextValue;
                 else if (current.type == ExpressionType.MINUS)
                     back.value = backValue - nextValue;
-                else if (current.type == ExpressionType.MULTIPLY)
-                    back.value = backValue * nextValue;
-                else if (current.type == ExpressionType.DIVIDE)
-                    back.value = backValue / nextValue;
+                else {
+                    i++; // skip
+                    continue;
+                }
 
                 expressions.remove(i); // remove operator
                 expressions.remove(i); // remove next
@@ -63,7 +87,7 @@ public class Expression {
                     i++;
                     final Block blockAssign = Block.getBlock(currentToken.data, blocks);
                     if (blockAssign != null) expressions.add(blockAssign.result.value);
-                // local func with no parameters
+                    // local func with no parameters
                 } else {
                     final Block blockAssign = Block.getBlock(currentToken.data, block.localBlocks);
                     if (blockAssign != null) expressions.add(blockAssign.result.value);
@@ -73,14 +97,19 @@ public class Expression {
             if (currentToken.type == TokenType.VARIABLE_NAME) {
                 final String[] variableAssign = currentToken.data.split(":");
 
-                final Variable variable;
+                Variable variable;
                 if (variableAssign.length == 1) {
                     variable = block.getVariable(variableAssign[0], blocks);
                     if (variable.resultValue == null) variable.setValue(block, blocks);
                 }
                 else {
-                    final Block b = block.getVariableBlock(variableAssign[0], blocks);
-                    variable = b.variables.get( Integer.parseInt(variableAssign[1]) );
+                    Block b = block.getVariableBlock(true, variableAssign[0], blocks);
+                    int variableIndex = Integer.parseInt(variableAssign[1]);
+                    if (variableIndex == -1) {
+                        b = block.getVariableBlock(false, variableAssign[0], blocks);
+                        variable = b.variables.get(0);
+                    } else
+                        variable = b.variables.get(variableIndex);
                     variable.setValue(b, blocks);
                 }
 
@@ -93,9 +122,9 @@ public class Expression {
             if (currentToken.type == TokenType.NUMBER || currentToken.type == TokenType.FLOAT)
                 expressions.add(new ExpressionObject(ExpressionType.NUMBER, currentToken.data));
             else
-            // read operators
-            if (Token.checkOperator(currentToken.type))
-                expressions.add(new ExpressionObject(getType(currentToken.type)));
+                // read operators
+                if (Token.checkOperator(currentToken.type))
+                    expressions.add(new ExpressionObject(getType(currentToken.type)));
         }
         // until this moment we could not know how many expression objects
         if (expressions.isEmpty())

@@ -18,20 +18,13 @@ func main():
   \\ if return then auto return 0
 end
 *\
-func a():
-  a = 10+5
-  return a+5 \\ <- return 20
-end
 func main():
-  a = 5
+  a = 10/10 \\ <- 1
   a = func:
-    b = a+5
-    c = func:
-      c = b+5
-      c = c+5
-      return c+5+a() \\ <- return 45
-    end
-    return c
+    a = a*10 \\ <- 10
+    a = a+10
+    a = a+10
+    return a \\ <- 30
   end
-  return a-10 \\ <- return 35
+  return a \\ <- 30
 end
