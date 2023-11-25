@@ -13,8 +13,12 @@ public class Variable {
         this.type = type;
         this.value = new Expression(value);
     }
+    public Variable(final String name, final ExpressionType type) {
+        this.name = name;
+        this.type = type;
+    }
     public void setValue(final Block block, final ArrayList<Block> blocks) {
-        if (resultValue == null)
+        if (resultValue == null && value != null) // if you need -> set resulValue to null for new calculation
             resultValue = value.getValue(value.value, block, blocks);
     }
 }

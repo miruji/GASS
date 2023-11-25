@@ -71,26 +71,41 @@ public class Expression {
     }
     /** get expression value */
     public ExpressionObject getValue(ArrayList<Token> value, final Block block, final ArrayList<Block> blocks) {
-        if (valueResult != null) return valueResult;
+        //if (valueResult != null) return valueResult;
         // parse expression
         final ArrayList<ExpressionObject> expressions = new ArrayList<>();
         for (int i = 0; i < value.size(); i++) {
             final Token currentToken = value.get(i);
             // read circle bracket
             if (currentToken.type == TokenType.CIRCLE_BLOCK_BEGIN && currentToken.childrens != null && !currentToken.childrens.isEmpty()) {
+                System.out.println( Token.tokensToString(currentToken.childrens, false) );
                 expressions.add(getValue(currentToken.childrens, block, blocks));
             } else
             // read block assign
+            if (currentToken.type == TokenType.PROCEDURE_ASSIGN) {
+                // TO:DO: error
+            } else
             if (currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN) {
                 // global func with parameters
                 if (i+1 < value.size() && value.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
                     i++;
                     final Block blockAssign = Block.getBlock(currentToken.data, blocks);
                     if (blockAssign != null) expressions.add(blockAssign.result.value);
-                    // local func with no parameters
+                // local func with no parameters
                 } else {
                     final Block blockAssign = Block.getBlock(currentToken.data, block.localBlocks);
                     if (blockAssign != null) expressions.add(blockAssign.result.value);
+                }
+            } else
+            // read parameters
+            if (currentToken.type == TokenType.PARAMETER_NAME) {
+                Variable parameter = block.findParameter(currentToken.data);
+                parameter.resultValue = null; // if parameter -> then calculate new value everyone
+                parameter.setValue(block, blocks);
+
+                if (parameter.resultValue != null) {
+                    final ExpressionObject variableValue = new ExpressionObject(parameter.resultValue.type, parameter.resultValue.value);
+                    expressions.add(variableValue);
                 }
             } else
             // read variables

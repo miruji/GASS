@@ -63,4 +63,5 @@ public enum TokenType {
             RETURN_VALUE, // return
         // variable
             VARIABLE_NAME,
+            PARAMETER_NAME,
 }

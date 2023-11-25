@@ -10,7 +10,7 @@ public class BlockResult {
         this.expression = new Expression(tokens);
     }
     public void setValue(final Block block, final ArrayList<Block> blocks) {
-        if (value == null)
+        //if (value == null)
             value = expression.getValue(expression.value, block, blocks);
     }
 }

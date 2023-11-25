@@ -75,6 +75,9 @@ public class Token {
             case FIGURE_BLOCK_END -> "}";
             case SQUARE_BLOCK_BEGIN -> "[";
             case SQUARE_BLOCK_END -> "]";
+            // other
+            case COMMA -> ",";
+            case DOT -> ".";
             // default
             default -> "";
         };
@@ -174,6 +177,26 @@ public class Token {
                 output.append(outputChildrens(child, depth+1));
         return output.toString();
     }
+    /** separate tokens */
+    public static ArrayList<ArrayList<Token>> separateTokens(final TokenType separate, final ArrayList<Token> tokens) {
+        final ArrayList<ArrayList<Token>> result = new ArrayList<>();
+        final ArrayList<Token> buffer = new ArrayList<>();
+        final int tokensSize = tokens.size();
+        for (int i = 0; i < tokensSize; i++) {
+            final Token token = tokens.get(i);
+            if (i+1 >= tokensSize) {
+                buffer.add(token);
+                result.add(new ArrayList<>(buffer));
+                buffer.clear();
+            } else
+            if (token.type == separate) {
+                result.add(new ArrayList<>(buffer));
+                buffer.clear();
+            } else
+                buffer.add(token);
+        }
+        return result;
+    }
     /** tokens to string */
     public static String tokensToString(final ArrayList<Token> tokens, final boolean readChildrens) {
         final StringBuilder result = new StringBuilder();
@@ -197,7 +220,7 @@ public class Token {
             if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains(type) && i+1 < tokens.size() &&
                 (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN,
                          TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END,
-                         TokenType.BLOCK_BEGIN).contains( tokens.get(i+1).type ) || checkOperator(type)) ) {
+                         TokenType.BLOCK_BEGIN, TokenType.COMMA, TokenType.DOT).contains( tokens.get(i+1).type ) || checkOperator(type)) ) {
                     result.append(' ');
                 }
 
