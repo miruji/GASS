@@ -12,6 +12,7 @@ The working process is as follows:
   3. Getting ast and optimizing the code
   4. Obtaining gas code from ast
   5. Writing code in gas/C/gass and implementing it in point 4 to get more gass functionality
+  6. * Writing a JIT to run GAS code at runtime -> second alternative way to work gass
 
 Thus, the initial core of libraries and functionality will be written in gas, with the possibility of expanding the language itself. I don't think it's impossible to write anything in gas, so over time I plan to just add more functionality. However, I don’t have much experience in this at all, so there will be mistakes, there will be a lot of them, but the process will be exciting.
 
