@@ -74,32 +74,55 @@ public class Expression {
         //if (valueResult != null) return valueResult;
         // parse expression
         final ArrayList<ExpressionObject> expressions = new ArrayList<>();
+        System.out.println("!! "+Token.tokensToString(value, true));
         for (int i = 0; i < value.size(); i++) {
             final Token currentToken = value.get(i);
+            System.out.println("\t- "+currentToken.type);
             // read circle bracket
             if (currentToken.type == TokenType.CIRCLE_BLOCK_BEGIN && currentToken.childrens != null && !currentToken.childrens.isEmpty()) {
-                System.out.println( Token.tokensToString(currentToken.childrens, false) );
                 expressions.add(getValue(currentToken.childrens, block, blocks));
             } else
             // read block assign
             if (currentToken.type == TokenType.PROCEDURE_ASSIGN) {
-                // TO:DO: error
+                // TO:DO: exception
             } else
             if (currentToken.type == TokenType.BLOCK_ASSIGN || currentToken.type == TokenType.FUNCTION_ASSIGN) {
                 // global func with parameters
                 if (i+1 < value.size() && value.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
                     i++;
+                    System.out.println("1+ "+currentToken.data);
                     final Block blockAssign = Block.getBlock(currentToken.data, blocks);
+
+                    System.out.println("2+ "+blockAssign.name);
+
+                    System.out.println("3+ "+Token.tokensToString(value.get(i).childrens, true));
+                    final ArrayList<ArrayList<Token>> parametersBuffer = Token.separateTokens(TokenType.COMMA, value.get(i).childrens);
+                    for (int j = 0; j < parametersBuffer.size(); j++) {
+                        final ArrayList<Token> parameter = parametersBuffer.get(j);
+                        blockAssign.parameters.get(j).value = new Expression(parameter);
+                        blockAssign.parameters.get(j).setValue(block, blocks);
+                        System.out.println("4+ "+blockAssign.parameters.get(j).resultValue.value);
+                    }
+                    blockAssign.parseBlock(blocks);
+
                     if (blockAssign != null) expressions.add(blockAssign.result.value);
                 // local func with no parameters
                 } else {
+                    System.out.println("LB: "+currentToken.data);
                     final Block blockAssign = Block.getBlock(currentToken.data, block.localBlocks);
+                    blockAssign.parseBlock(blocks);
                     if (blockAssign != null) expressions.add(blockAssign.result.value);
                 }
             } else
             // read parameters
             if (currentToken.type == TokenType.PARAMETER_NAME) {
-                Variable parameter = block.findParameter(currentToken.data);
+                System.out.println("\tfp1: "+currentToken.data+", b: "+block.name);
+                final String[] blockInfo = currentToken.data.split("~");
+                final Block findBlock = Block.findBlock(blockInfo[0], blocks);
+                Variable parameter;
+
+                if (blockInfo.length == 1) parameter = block.findParameter(blockInfo[0]);
+                else                       parameter = findBlock.findParameter(blockInfo[1]);
                 parameter.resultValue = null; // if parameter -> then calculate new value everyone
                 parameter.setValue(block, blocks);
 
@@ -110,22 +133,32 @@ public class Expression {
             } else
             // read variables
             if (currentToken.type == TokenType.VARIABLE_NAME) {
-                final String[] variableAssign = currentToken.data.split(":");
+                final String[] blockInfo = currentToken.data.split("~");
+                final String[] variableInfo = blockInfo[1].split(":");
 
+                System.out.println("0>> "+String.join(":", variableInfo));
                 Variable variable;
-                if (variableAssign.length == 1) {
-                    variable = block.getVariable(variableAssign[0], blocks);
+                if (variableInfo.length == 1) {
+                    variable = block.getVariable(variableInfo[0], blocks);
                     if (variable.resultValue == null) variable.setValue(block, blocks);
                 }
                 else {
-                    Block b = block.getVariableBlock(true, variableAssign[0], blocks);
-                    int variableIndex = Integer.parseInt(variableAssign[1]);
+                    //Block b = block.getVariableBlock(true, variableInfo[0], blocks);
+                    Block b = block;//Block.getBlock(blockInfo[0], blocks);
+                    System.out.println("111>"+block.name);
+                    System.out.println("1>> "+b.name);
+                    int variableIndex = Integer.parseInt(variableInfo[1]);
                     if (variableIndex == -1) {
-                        b = block.getVariableBlock(false, variableAssign[0], blocks);
-                        variable = b.variables.get(0);
-                    } else
+                    //    b = block.getVariableBlock(false, variableAssign[0], blocks);
+                    //    System.out.println("2>> "+b.name);
+                        //variable = b.variables.get(0);
+                        variable = Block.findVariableInBlocks(variableInfo[0], b, blocks);
+                    //    variable.setValue(b, blocks);
+                        //System.out.println("3>>"+Block.findVariableInBlocks(variableAssign[0], b, blocks));
+                    } else {
                         variable = b.variables.get(variableIndex);
-                    variable.setValue(b, blocks);
+                        variable.setValue(b, blocks);
+                    }
                 }
 
                 if (variable.resultValue != null) {

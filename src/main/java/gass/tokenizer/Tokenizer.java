@@ -99,7 +99,7 @@ public class Tokenizer {
                         return true;
                 }
             } else
-            if (input.charAt(counter+1) == '*') { // double comment
+            if (input.charAt(counter+1) == '*') { // double comment (TO:DO: \* *\ \** **\ and more ... )
                 counter++;
                 while (counter < inputLength) {
                     counter++;

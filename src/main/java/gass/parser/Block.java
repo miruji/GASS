@@ -1,34 +1,116 @@
 package gass.parser;
 
+import gass.io.log.Log;
+import gass.io.log.LogType;
 import gass.tokenizer.Token;
 import gass.tokenizer.TokenType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 
 import static java.lang.Character.isDigit;
 
 public class Block {
-    public String name;                        // block name
-    public BlockType type;                     // block type
-    public ArrayList<Variable> parameters;     // block parameters
-    public ArrayList<Token> tokens;            // block tokens
-    public ArrayList<Block> localBlocks;       // local blocks
-    public ArrayList<String> dependencyBlocks; // global dependency blocks
-    public ArrayList<Variable> variables;      // block variables
+    public String name;                            // block name
+    public BlockType type;                         // block type
+    public ArrayList<Variable> parameters;         // block parameters
+    public ArrayList<ArrayList<Token>> lines; // block tokens
+    public ArrayList<Block> localBlocks;           // local blocks
+    public ArrayList<Variable> variables;          // block variables
     public BlockResult result;
     /** global block with parameters */
     public Block(final String name, final BlockType type, final ArrayList<Token> parameters, final ArrayList<Token> tokens) {
         this.name = name;
         this.type = type;
         addParameters(parameters);
-        this.tokens = tokens;
+        lines = new ArrayList<>();
+        lines.add(tokens);
     }
     /** global block with no parameters */
     public Block(final String name, final BlockType type, final ArrayList<Token> tokens) {
         this.name = name;
         this.type = type;
-        this.tokens = tokens;
+        lines = new ArrayList<>();
+        lines.add(tokens);
+    }
+    /** find block by name */
+    public static Block findBlock(final String findName, final ArrayList<Block> blocks) {
+        if (findName == null || findName.isEmpty() || blocks == null || blocks.isEmpty()) return null;
+
+        // find main block
+        final String[] findNameBuffer = findName.split(":");
+        Block findBlock = null;
+        for (final Block block : blocks) {
+            if (Objects.equals(findNameBuffer[0], block.name)) {
+                if (findNameBuffer.length == 1) return block; // if name only
+                findBlock = block;
+                break;
+            }
+        }
+
+        // find by name
+        if (findBlock == null) return null;
+        for (int i = 1; i < findNameBuffer.length; i++) {
+            findBlock = findBlock.localBlocks.get( Integer.parseInt(findNameBuffer[i]) );
+            if (Objects.equals(findBlock.name, findName))
+                return findBlock; // return local block
+        }
+
+        return null;
+    }
+    /** find varible by name */
+    public static Variable findVariable(final String findName, final Block block) {
+        if (findName == null || findName.isEmpty() || block == null || block.variables == null || block.variables.isEmpty())
+            return null;
+
+        for (int i = block.variables.size()-1; i >= 0; i--){
+            final Variable variable = block.variables.get(i);
+            if (Objects.equals(variable.name, findName))
+                return variable;
+        }
+
+        return null;
+    }
+    /** find varible by name in blocks */
+    public static Variable findVariableInBlocks(final String findName, final Block currentBlock, final ArrayList<Block> blocks) {
+        // TO:DO: check this
+        String[] findNameBuffer = currentBlock.name.split(":");
+
+        // find current block -> up to max global
+        final ArrayList<Block> buffer = new ArrayList<>();
+        for (int i = 0; i < findNameBuffer.length; i++) {
+            System.out.println("\t1: "+String.join(":", findNameBuffer));
+            buffer.add( findBlock(String.join(":", findNameBuffer), blocks) );
+            findNameBuffer = Arrays.copyOfRange(findNameBuffer, 0, findNameBuffer.length-1);
+        }
+        Collections.reverse(buffer);
+        System.out.println("\t2: "+buffer.size());
+        if (buffer.size() > 1)
+            for (final Block b : buffer) {
+                System.out.println("\t3: "+b.name);
+                final Variable result = findVariable(findName, b);
+                if (result != null) return result;
+            }
+
+        // find in others global blocks
+        for (final Block b : blocks) {
+            final Variable result = findVariable(findName, b);
+            if (result != null) return result;
+        }
+
+        return null;
+    }
+    /** find blocks by names */
+    public static ArrayList<Block> findBlocks(final ArrayList<String> findNames, final ArrayList<Block> blocks) {
+        if (findNames == null || findNames.isEmpty() || blocks == null || blocks.isEmpty()) return null;
+
+        final ArrayList<Block> result = new ArrayList<>();
+        for (final String findName : findNames)
+            result.add( findBlock(findName, blocks) );
+
+        return result;
     }
     /** add parameters */
     private void addParameters(final ArrayList<Token> parameters) {
@@ -40,7 +122,7 @@ public class Block {
             // then change the search here to separate by commas
             // -> use Token.separateTokens()
             if (parameter.type == TokenType.WORD) {
-                this.parameters.add(new Variable(parameter.data, ExpressionType.NONE));
+                this.parameters.add(new Variable(parameter.data, ExpressionType.NONE, name));
             }
         }
     }
@@ -72,19 +154,6 @@ public class Block {
         if (localBlocks == null) localBlocks = new ArrayList<>();
         localBlocks.add(localBlock);
     }
-    /** add dependency block */
-    public void addDependencyBlock(final String dependencyBlock) {
-        if (dependencyBlock == null || dependencyBlock.isEmpty()) return;
-        if (dependencyBlocks == null) dependencyBlocks = new ArrayList<>();
-
-        // check exist
-        for (final String dependency : dependencyBlocks) {
-            if (Objects.equals(dependency, dependencyBlock))
-                return;
-        }
-
-        dependencyBlocks.add(dependencyBlock);
-    }
     /** get blocks */
     public static ArrayList<Block> getBlocks(final ArrayList<String> findNames, final ArrayList<Block> blocks) {
         if (findNames == null || findNames.isEmpty() || blocks == null || blocks.isEmpty()) return null;
@@ -111,14 +180,14 @@ public class Block {
         return null;
     }
     /** add variable */
-    public void addVariable(final String name, final ArrayList<Token> value) {
-        if (name == null || name.isEmpty() || value == null || value.isEmpty()) return;
+    public void addVariable(final Variable variable) {
+        if (variable == null) return;
         if (variables == null) variables = new ArrayList<>();
 
         // no check exist
         // each variable has its own declaration order
 
-        variables.add( new Variable(name, ExpressionType.NUMBER, value) );
+        variables.add( variable );
     }
     /** find variable */
     public Variable findVariable(final String findName, final ArrayList<Variable> variables) {
@@ -238,11 +307,16 @@ public class Block {
         output.append(repeat).append(block.type).append(" [").append(block.name).append("]:\n");
 
         // block tokens info
-        if (block.tokens != null && !block.tokens.isEmpty()) {
-            output.append(repeat2).append("Tokens:\n");
-            for (final Token t : block.tokens)
-                output.append(Token.outputChildrens(t, depth+2));
-            output.append(repeat2).append("-\n");
+        if (block.lines != null && !block.lines.isEmpty()) {
+            output.append(repeat2).append("Lines:\n");
+            for (final ArrayList<Token> line : block.lines) {
+                if (line == null || line.isEmpty()) continue;
+                for (final Token token : line) {
+                    output.append(Token.outputChildrens(token, depth+2));
+                }
+                output.append(repeat3).append(".\n");
+            }
+            output.append(repeat2).append("~\n");
         }
 
         // local blocks info
@@ -250,14 +324,7 @@ public class Block {
             output.append(repeat2).append("Local blocks:\n");
             for (int i = 0; i < block.localBlocks.size(); i++)
                 output.append(outputLocalBlocks(block.localBlocks.get(i), depth+2));
-            output.append(repeat2).append("-\n");
-        }
-
-        if (block.dependencyBlocks != null && !block.dependencyBlocks.isEmpty()) {
-            output.append(repeat2).append("Dependency blocks:\n");
-            for (final String d : block.dependencyBlocks)
-                output.append(repeat3).append(d).append('\n');
-            output.append(repeat2).append("-\n");
+            output.append(repeat2).append("~\n");
         }
 
         // dependency blocks info
@@ -266,13 +333,13 @@ public class Block {
             for (int i = 0; i < block.variables.size(); i++) {
                 final Variable v = block.variables.get(i);
                 if (v.value == null)
-                    output.append(repeat3).append(i).append(": [").append(v.name).append("]\n");
+                    output.append(repeat3).append("[").append(v.blockName).append('~').append(v.name).append(':').append(i).append("]\n");
                 else
-                    output.append(repeat3).append(i).append(": [").append(v.name).append("] =")
+                    output.append(repeat3).append("[").append(v.blockName).append('~').append(v.name).append(':').append(i).append("] =")
                           .append(" [").append( Token.tokensToString(v.value.value, true) ).append("]")
                           .append(" -> [").append( v.resultValue != null ? v.resultValue.value : "" ).append("]\n");
             }
-            output.append(repeat2).append("-\n");
+            output.append(repeat2).append("~\n");
         }
 
         // block parameters
@@ -281,13 +348,13 @@ public class Block {
             for (int i = 0; i < block.parameters.size(); i++) {
                 final Variable p = block.parameters.get(i);
                 if (p.value == null)
-                    output.append(repeat3).append(i).append(": [").append(p.name).append("]\n");
+                    output.append(repeat3).append("[").append(p.blockName).append('~').append(p.name).append(':').append(i).append("]\n");
                 else
-                    output.append(repeat3).append(i).append(": [").append(p.name).append("] =")
+                    output.append(repeat3).append("[").append(p.blockName).append('~').append(p.name).append(':').append(i).append("] =")
                             .append(" [").append( Token.tokensToString(p.value.value, true) ).append("]")
                             .append(" -> [").append( p.resultValue != null ? p.resultValue.value : "" ).append("]\n");
             }
-            output.append(repeat2).append("-\n");
+            output.append(repeat2).append("~\n");
         }
 
         // block return
@@ -301,5 +368,98 @@ public class Block {
         output.append(repeat).append("eb\n");
 
         return output.toString();
+    }
+    /** parse block */
+    public void parseBlock(final ArrayList<Block> blocks) {
+        System.out.println("b: "+name);
+        // read lines and parse
+        for (int i = 0; i < lines.size();) {
+            final ArrayList<Token> line = lines.get(i);
+            parseLine(line, blocks);
+            lines.remove(line);
+        }
+    }
+    /** parse line */
+    private void parseLine(final ArrayList<Token> line, final ArrayList<Block> blocks) {
+        // rename block assign | rename variables and parameters
+        for (int i = 0; i < line.size(); i++) {
+            final Token currentToken = line.get(i);
+            if (currentToken.type == TokenType.WORD) {
+                if (i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN)
+                    currentToken.type = TokenType.BLOCK_ASSIGN;
+                else {
+                    final Variable parameter = findParameter(currentToken.data);
+                    if (parameter != null) currentToken.type = TokenType.PARAMETER_NAME;
+                    else                   currentToken.type = TokenType.VARIABLE_NAME;
+                }
+            }
+            //
+        }
+
+        // read block assign | read variable | read result
+        for (int i = 0; i < line.size(); i++) {
+            final Token currentToken = line.get(i);
+            if ((currentToken.type == TokenType.VARIABLE_NAME || currentToken.type == TokenType.PARAMETER_NAME) &&
+                    i+1 < line.size() && line.get(i+1).type == TokenType.EQUAL) {
+                final String variableName = currentToken.data;
+                line.remove(0); // remove name
+                line.remove(0); // remove =
+                //System.out.println(Token.tokensToString(line, true));
+
+                renameVariable(line, blocks);
+                final Variable variable = new Variable(variableName, ExpressionType.NUMBER, new ArrayList<>(line), name);
+                variable.setValue(this, blocks); // calculate variable value now
+
+                final int parameterIndex = findParameterIndex(variableName);
+                if (currentToken.type == TokenType.VARIABLE_NAME || parameterIndex == -1)
+                    addVariable(variable);
+                else
+                    parameters.set(parameterIndex, variable);
+            } else
+            if (currentToken.type == TokenType.RETURN_VALUE) {
+                line.remove(0); // remove return
+                //System.out.println(Token.tokensToString(line, true));
+
+                renameVariable(line, blocks);
+                final BlockResult result = new BlockResult(new ArrayList<>(line));
+                result.setValue(this, blocks);
+                this.result = result;
+            }
+        }
+    }
+    /** rename variables */
+    private void renameVariable(final ArrayList<Token> tokens, final ArrayList<Block> blocks) {
+        if (tokens == null || tokens.isEmpty()) return;
+
+        final int tokensSize = tokens.size();
+        for (int i = 0; i < tokensSize; i++) {
+            final Token token = tokens.get(i);
+            if (token.type == TokenType.WORD || token.type == TokenType.VARIABLE_NAME || token.type == TokenType.PARAMETER_NAME) {
+                // block assign
+                if (i+1 < tokensSize && tokens.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
+                    token.type = TokenType.BLOCK_ASSIGN;
+                    continue;
+                }
+                // parameter
+                final int checkParameter = findParameterIndex(token.data);
+                if (checkParameter >= 0) {
+                    token.type = TokenType.PARAMETER_NAME;
+                    token.data = name + '~' + token.data;
+                    continue;
+                }
+                // variable
+                final int checkVariable = getVariableIndex(token.data, blocks);
+                if (checkVariable >= 0) {
+                    token.type = TokenType.VARIABLE_NAME;
+                    if (findVariableIndex(false, token.data, variables) == -1)
+                        token.data = name + '~' + token.data + ":-1";
+                    else
+                        token.data = name + '~' + token.data + ':' + String.valueOf(checkVariable); // set variable name + num in variables ArrayList
+                } //else
+                //    new Log(LogType.error, "Expected existing variable ["+token.data+"] in block ["+name+']');
+            } else if (token.type == TokenType.CIRCLE_BLOCK_BEGIN && token.childrens != null && !token.childrens.isEmpty())
+                renameVariable(token.childrens, blocks);
+        }
+        //
     }
 }

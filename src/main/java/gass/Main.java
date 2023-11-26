@@ -21,13 +21,13 @@ public class Main {
         // start
         new Log(LogType.info, "start\n");
 
-        // open .ll file
+        // open .gs file
         final String openFilePath = "release/Main.gs";
 
         final String openFile = File.getFileString(openFilePath);
         new Log(LogType.info, "Open file data: ["+openFile+"]\n");
 
-        // tokenizer
+        /* next tokenizer */
         final Tokenizer tokenizer = new Tokenizer(openFile);
 
         StringBuilder outputBuffer; /* = new StringBuilder("Tokenizer output: [\n");
@@ -40,14 +40,10 @@ public class Main {
         new Log(LogType.info, outputBuffer.append("] \n").toString());
         */
 
-        // parser
+        /* next parser */
         final Parser parser = new Parser(tokenizer.tokens);
 
-        outputBuffer = new StringBuilder("Parser output: [\n");
-        for (final Token t : parser.tokens)
-            outputBuffer.append(Token.outputChildrens(t, 1));
-        new Log(LogType.info, outputBuffer.append("] \n").toString());
-
+        /*
         // enums
         outputBuffer = new StringBuilder("Enums: [\n");
         for (final Enum e : parser.enums) {
@@ -68,6 +64,7 @@ public class Main {
             outputBuffer.append("\t}\n");
         }
         new Log(LogType.info, outputBuffer.append("] \n").toString());
+         */
 
         // global functions
         outputBuffer = new StringBuilder("Global blocks:\n");

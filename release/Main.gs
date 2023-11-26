@@ -18,12 +18,16 @@ func main():
   \\ if return then auto return 0
 end
 *\
-func a(input1):
-  return input1*2
+func ab(a, b):
+  return a+b
+end
+func ab2(a, b):
+  return a-b
 end
 func main():
-  a = a(5)
-  b = a(10)
-  c = 10
-  return (a+b+c)/2 \\ <- return 20
+  a = ab(10,5)
+  a = func:
+    return ab2(a,15)
+  end
+  return a \\ = 0
 end
