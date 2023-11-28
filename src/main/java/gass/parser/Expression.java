@@ -12,6 +12,10 @@ public class Expression {
     }
     /** TokenType to ExpressionType */
     public static ExpressionType getType(final TokenType type) {
+        // logical
+        if (type == TokenType.GREATER_THAN) return ExpressionType.GREATER_THAN;
+        if (type == TokenType.LESS_THAN) return ExpressionType.LESS_THAN;
+        // math
         if (type == TokenType.PLUS) return ExpressionType.PLUS;
         if (type == TokenType.MINUS) return ExpressionType.MINUS;
         if (type == TokenType.MULTIPLY) return ExpressionType.MULTIPLY;
@@ -20,6 +24,32 @@ public class Expression {
     }
     /** calculate value */
     public static ExpressionObject calculate(final ArrayList<ExpressionObject> expressions) {
+        // logical
+        for (int i = 1; i+1 < expressions.size();) {
+            final ExpressionObject current = expressions.get(i);
+            final ExpressionObject back = expressions.get(i-1);
+            final ExpressionObject next = expressions.get(i+1);
+
+            if (back.type == ExpressionType.NUMBER && next.type == ExpressionType.NUMBER) {
+                final int backValue = Integer.parseInt(back.value.toString());
+                final int nextValue = Integer.parseInt(next.value.toString());
+
+                if (current.type == ExpressionType.GREATER_THAN)
+                    back.value = (backValue > nextValue) ? 1 : 0;
+                else if (current.type == ExpressionType.LESS_THAN)
+                    back.value = (backValue < nextValue) ? 1 : 0;
+                else {
+                    i++;
+                    continue;
+                }
+            } else {
+                i++;
+                continue;
+            }
+
+            expressions.remove(i); // remove operator
+            expressions.remove(i); // remove next
+        }
         // multiply and divide
         for (int i = 1; i+1 < expressions.size();) {
             final ExpressionObject current = expressions.get(i);
@@ -35,13 +65,16 @@ public class Expression {
                 else if (current.type == ExpressionType.DIVIDE)
                     back.value = backValue / nextValue;
                 else {
-                    i++; // skip
+                    i++;
                     continue;
                 }
+            } else {
+                i++;
+                continue;
+            }
 
-                expressions.remove(i); // remove operator
-                expressions.remove(i); // remove next
-            } else i++; // skip
+            expressions.remove(i); // remove operator
+            expressions.remove(i); // remove next
         }
         // plus and minus
         for (int i = 1; i+1 < expressions.size();) {
@@ -49,6 +82,7 @@ public class Expression {
             final ExpressionObject back = expressions.get(i-1);
             final ExpressionObject next = expressions.get(i+1);
 
+            // NUMBER - NUMBER
             if (back.type == ExpressionType.NUMBER && next.type == ExpressionType.NUMBER) {
                 final int backValue = Integer.parseInt(back.value.toString());
                 final int nextValue = Integer.parseInt(next.value.toString());
@@ -58,13 +92,40 @@ public class Expression {
                 else if (current.type == ExpressionType.MINUS)
                     back.value = backValue - nextValue;
                 else {
-                    i++; // skip
+                    i++;
                     continue;
                 }
+            } else
+            // STRING - NUMBER
+            if (back.type == ExpressionType.STRING && next.type == ExpressionType.NUMBER) {
+                final String backValue = back.value.toString();
+                final int nextValue = Integer.parseInt(next.value.toString());
 
-                expressions.remove(i); // remove operator
-                expressions.remove(i); // remove next
-            } else i++; // skip
+                if (current.type == ExpressionType.PLUS)
+                    back.value = backValue + nextValue;
+                else {
+                    i++;
+                    continue;
+                }
+            } else
+            // NUMBER - STRING
+            if (back.type == ExpressionType.NUMBER && next.type == ExpressionType.STRING) {
+                final int backValue = Integer.parseInt(back.value.toString());
+                final String nextValue = next.value.toString();
+
+                if (current.type == ExpressionType.PLUS)
+                    back.value = backValue + nextValue;
+                else {
+                    i++;
+                    continue;
+                }
+            } else {
+                i++;
+                continue;
+            }
+
+            expressions.remove(i); // remove operator
+            expressions.remove(i); // remove next
         }
 
         return expressions.get(0);
@@ -96,14 +157,14 @@ public class Expression {
                             blockAssign.parameters.get(j).value = new Expression(parameter);
                             blockAssign.parameters.get(j).setValue(block, blocks);
                         }
-                        blockAssign.parseBlock(blocks, Parser.stack);
+                        blockAssign.parseBlock(blocks);
                         expressions.add(blockAssign.result.value);
                     }
                 // local func with no parameters
                 } else {
                     final Block blockAssign = Block.getBlock(currentToken.data, block.localBlocks);
                     if (blockAssign != null) {
-                        blockAssign.parseBlock(blocks, Parser.stack);
+                        blockAssign.parseBlock(blocks);
                         expressions.add(blockAssign.result.value);
                     }
                 }

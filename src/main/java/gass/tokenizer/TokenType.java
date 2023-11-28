@@ -30,13 +30,17 @@ public enum TokenType {
             MULTIPLY_EQUALS, // *=
             DIVIDE_EQUALS,   // /=
         // single logical
-            QUESTION, // ?
-            NOT,      // !
+            GREATER_THAN, // >
+            LESS_THAN,    // <
+            QUESTION,     // ?
+            NOT,          // !
         // double logical
-            NOT_EQUAL,    // !=
-            DOUBLE_EQUAL, // ==
-            AND,          // &&
-            OR,           // ||
+            GREATER_THAN_OR_EQUAL, // >=
+            LESS_THAN_OR_EQUAL,    // <=
+            NOT_EQUAL,             // !=
+            DOUBLE_EQUAL,          // ==
+            AND,                   // &&
+            OR,                    // ||
     // Parser types
         // parameter
             CIRCLE_BLOCK_BEGIN, // (
@@ -64,4 +68,12 @@ public enum TokenType {
         // variable
             VARIABLE_NAME,
             PARAMETER_NAME,
+        // other block
+            IF,
+            ELSE,
+            FOR,
+            WHILE,
+            CASE,
+            DEFAULT,
+            CONTINUE,
 }

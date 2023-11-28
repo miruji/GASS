@@ -5,12 +5,33 @@ import gass.io.log.LogType;
 import gass.tokenizer.Token;
 import gass.tokenizer.TokenType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Objects;
+import java.io.*;
+import java.util.*;
 
-public class Block {
+public class Block implements Serializable {
+    <T extends Object> T copyObject(T sourceObject) {
+
+        T copyObject = null;
+
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(sourceObject);
+            objectOutputStream.flush();
+            objectOutputStream.close();
+            byteArrayOutputStream.close();
+            byte[] byteData = byteArrayOutputStream.toByteArray();
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteData);
+            try {
+                copyObject = (T) new ObjectInputStream(byteArrayInputStream).readObject();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return copyObject;
+    }
     public String name;                       // block name
     public BlockType type;                    // block type
     public ArrayList<Variable> parameters;    // block parameters
@@ -378,16 +399,18 @@ public class Block {
         return output.toString();
     }
     /** parse block */
-    public void parseBlock(final ArrayList<Block> blocks, final ArrayList<Stack> stack) {
+    public void parseBlock(final ArrayList<Block> blocks) {
         // read lines and parse
         for (int i = 0; i < lines.size();) {
             final ArrayList<Token> line = lines.get(i);
-            parseLine(line, blocks, stack);
+            parseLine(line, blocks);
+
+            System.out.println( "line: "+Token.tokensToString(line, true) );
             lines.remove(line);
         }
     }
     /** parse line */
-    private void parseLine(final ArrayList<Token> line, final ArrayList<Block> blocks, final ArrayList<Stack> stack) {
+    private void parseLine(final ArrayList<Token> line, final ArrayList<Block> blocks) {
         // rename block call | rename variables and parameters
         for (int i = 0; i < line.size(); i++) {
             final Token currentToken = line.get(i);
@@ -406,8 +429,40 @@ public class Block {
         // read block assign | read variable | read result
         for (int i = 0; i < line.size(); i++) {
             final Token currentToken = line.get(i);
+            // variable increment & decrement
             if ((currentToken.type == TokenType.VARIABLE_NAME || currentToken.type == TokenType.PARAMETER_NAME) &&
-                    i+1 < line.size() && line.get(i+1).type == TokenType.EQUAL) {
+                 i+1 < line.size() && (line.get(i+1).type == TokenType.INCREMENT || line.get(i+1).type == TokenType.DECREMENT)) {
+
+                renameVariable(line, blocks);
+                // TO:DO: pre increment/decrement (++i --i)
+
+                final String[] blockInfo = currentToken.data.split("~");
+                final String[] variableInfo = blockInfo[1].split(":");
+
+                final Variable variable;
+                final Variable parameter = findParameter(currentToken.data);
+                if (parameter != null) {
+                    variable = parameter;
+                } else {
+                    int variableIndex = Integer.parseInt(variableInfo[1]);
+                    if (variableIndex == -1) {
+                        variable = Block.findVariableInBlocks(variableInfo[0], this, blocks);
+                    } else {
+                        variable = this.variables.get(variableIndex);
+                        variable.setValue(this, blocks);
+                    }
+                }
+
+                if (variable.resultValue.type == ExpressionType.NUMBER) {
+                    if (line.get(i+1).type == TokenType.INCREMENT)
+                        variable.resultValue.value = Integer.parseInt( variable.resultValue.value.toString() ) + 1;
+                    else
+                        variable.resultValue.value = Integer.parseInt( variable.resultValue.value.toString() ) - 1;
+                }
+            } else
+            // variable assign
+            if ((currentToken.type == TokenType.VARIABLE_NAME || currentToken.type == TokenType.PARAMETER_NAME) &&
+                 i+1 < line.size() && line.get(i+1).type == TokenType.EQUAL) {
                 final String variableName = currentToken.data;
                 line.remove(0); // remove name
                 line.remove(0); // remove =
@@ -422,24 +477,53 @@ public class Block {
                 else
                     parameters.set(parameterIndex, variable);
             } else
-            if (currentToken.type == TokenType.BLOCK_CALL && i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
-                //line.remove(0); // remove call
+            // if
+            if (currentToken.type == TokenType.IF && i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN &&
+                i+2 < line.size() && List.of(TokenType.BLOCK_CALL, TokenType.FUNCTION_CALL, TokenType.PROCEDURE_CALL).contains(line.get(i+2).type) ) {
+                // check condition
+                final ArrayList<Token> conditionTokens = line.get(i+1).childrens;
+                renameVariable(conditionTokens, blocks);
+                final Expression conditionExpression = new Expression(conditionTokens);
+                conditionExpression.getValue(conditionExpression.value, this, blocks);
+                if (Integer.parseInt(conditionExpression.valueResult.value.toString()) == 1) {
+                    // parse local block
+                    findBlock(line.get(i+2).data, blocks).parseBlock(blocks);
+                }
+            } else
+            // while
+            if (currentToken.type == TokenType.WHILE && i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN &&
+                    i+2 < line.size() && List.of(TokenType.BLOCK_CALL, TokenType.FUNCTION_CALL, TokenType.PROCEDURE_CALL).contains(line.get(i+2).type) ) {
+                // check condition
+                final ArrayList<Token> conditionTokens = line.get(i+1).childrens;
+                renameVariable(conditionTokens, blocks);
+                final Expression conditionExpression = new Expression(conditionTokens);
 
+                final Block findBlock = findBlock(line.get(i+2).data, blocks);
+                while (true) {
+                    conditionExpression.getValue(conditionExpression.value, this, blocks);
+                    if (Integer.parseInt(conditionExpression.valueResult.value.toString()) == 1) {
+                        // parse local block
+                        copyObject(findBlock).parseBlock(blocks);
+                    } else break; // cycle end
+                }
+            } else
+            // block call
+            if (currentToken.type == TokenType.BLOCK_CALL && i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
                 renameVariable(line, blocks);
                 System.out.println( Token.tokensToString(line, true) );
 
                 final ArrayList<ArrayList<Token>> lineSeparate = Token.separateTokens(TokenType.COMMA, line.get(i+1).childrens);
                 final ArrayList<ExpressionObject> expressions = new ArrayList<>();
                 expressions.add(new ExpressionObject(ExpressionType.NONE, currentToken.data));
-                for (int j = 0; j < lineSeparate.size(); j++) {
-                    final ArrayList<Token> parameter = lineSeparate.get(j);
+                for (final ArrayList<Token> parameter : lineSeparate) {
                     final Expression expression = new Expression(parameter);
                     expression.getValue(expression.value, this, blocks);
                     expressions.add(expression.valueResult);
                 }
 
-                stack.add( new Stack(StackType.CALL, expressions) );
+                Parser.stack.add( new Stack(StackType.CALL, expressions) );
             } else
+            // return
             if (currentToken.type == TokenType.RETURN_VALUE) {
                 line.remove(0); // remove return
 

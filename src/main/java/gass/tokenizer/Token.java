@@ -1,8 +1,9 @@
 package gass.tokenizer;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Token {
+public class Token implements Serializable {
     public String data;                // word, block num ...
     public TokenType type;             // type
     public ArrayList<Token> childrens; // children tokens
@@ -19,20 +20,26 @@ public class Token {
     private static final Set<TokenType> OPERATORS;
     static {
         OPERATORS = new HashSet<>();
+        // single math
         OPERATORS.add(TokenType.PLUS);
         OPERATORS.add(TokenType.MINUS);
         OPERATORS.add(TokenType.MULTIPLY);
         OPERATORS.add(TokenType.DIVIDE);
         OPERATORS.add(TokenType.EQUAL);
         OPERATORS.add(TokenType.MODULO);
+        // double math
         OPERATORS.add(TokenType.INCREMENT);
         OPERATORS.add(TokenType.PLUS_EQUALS);
         OPERATORS.add(TokenType.DECREMENT);
         OPERATORS.add(TokenType.MINUS_EQUALS);
         OPERATORS.add(TokenType.MULTIPLY_EQUALS);
         OPERATORS.add(TokenType.DIVIDE_EQUALS);
+        // single logical
+        OPERATORS.add(TokenType.GREATER_THAN);
+        OPERATORS.add(TokenType.LESS_THAN);
         OPERATORS.add(TokenType.QUESTION);
         OPERATORS.add(TokenType.NOT);
+        // double logical
         OPERATORS.add(TokenType.NOT_EQUAL);
         OPERATORS.add(TokenType.DOUBLE_EQUAL);
         OPERATORS.add(TokenType.AND);
@@ -60,9 +67,13 @@ public class Token {
             case MULTIPLY_EQUALS -> "*=";
             case DIVIDE_EQUALS -> "/=";
             // single logical
+            case GREATER_THAN -> ">";
+            case LESS_THAN -> "<";
             case QUESTION -> "?";
             case NOT -> "!";
             // double logical
+            case GREATER_THAN_OR_EQUAL -> ">=";
+            case LESS_THAN_OR_EQUAL -> "<=";
             case NOT_EQUAL -> "!=";
             case DOUBLE_EQUAL -> "==";
             case AND -> "&&";
@@ -78,6 +89,7 @@ public class Token {
             // other
             case COMMA -> ",";
             case DOT -> ".";
+            case ENDLINE -> ";";
             // default
             default -> "";
         };
@@ -95,6 +107,13 @@ public class Token {
                 case "private" -> TokenType.PRIVATE;
                 case "public" -> TokenType.PUBLIC;
                 case "enum" -> TokenType.ENUM;
+                case "if" -> TokenType.IF;
+                case "else" -> TokenType.ELSE;
+                case "for" -> TokenType.FOR;
+                case "while" -> TokenType.WHILE;
+                case "case" -> TokenType.CASE;
+                case "default" -> TokenType.DEFAULT;
+                case "continue" -> TokenType.CONTINUE;
                 default -> TokenType.WORD;
             };
             case SINGLE_MATH -> switch (data) {
@@ -116,6 +135,8 @@ public class Token {
                 default -> TokenType.NONE;
             };
             case SINGLE_LOGICAL -> switch (data) {
+                case ">" -> TokenType.GREATER_THAN;
+                case "<" -> TokenType.LESS_THAN;
                 case "?" -> TokenType.QUESTION;
                 case "!" -> TokenType.NOT;
                 default -> TokenType.NONE;
@@ -219,8 +240,10 @@ public class Token {
             // if no ( { [ or ) } ]
             if (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains(type) && i+1 < tokens.size() &&
                 (!List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN,
-                         TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END,
-                         TokenType.BLOCK_BEGIN, TokenType.COMMA, TokenType.DOT).contains( tokens.get(i+1).type ) || checkOperator(type)) ) {
+                          TokenType.CIRCLE_BLOCK_END, TokenType.FIGURE_BLOCK_END, TokenType.SQUARE_BLOCK_END,
+                          TokenType.BLOCK_BEGIN, TokenType.COMMA, TokenType.DOT, TokenType.ENDLINE,
+                          TokenType.INCREMENT, TokenType.DECREMENT).contains( tokens.get(i+1).type )
+                 || checkOperator(type)) ) {
                     result.append(' ');
                 }
 

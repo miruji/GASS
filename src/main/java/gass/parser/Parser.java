@@ -49,7 +49,7 @@ public class Parser {
         //    renamelobalBlockAssign(block);       // global assign to func/proc/none
 
         mainBlock = Block.getBlock("main", blocks);
-        mainBlock.parseBlock(blocks, stack);
+        mainBlock.parseBlock(blocks);
         //System.out.println("# "+mainBlock.name);
         //declarateVariable(mainBlock); // variables <- in global and local blocks
         //declarateResult(mainBlock);   // return    <- in global and local block

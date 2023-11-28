@@ -21,7 +21,7 @@ public enum TokenizerTokenType {
         CIRCLE_BLOCK, // ()
         FIGURE_BLOCK, // {}
         SQUARE_BLOCK, // []
-    // ~
+    // other
         COMMA, // ,
         DOT,   // .
 }

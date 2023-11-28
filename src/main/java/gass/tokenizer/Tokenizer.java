@@ -41,7 +41,7 @@ public class Tokenizer {
                         addToken(c+"", TokenizerTokenType.SINGLE_MATH, true);
                     else
                     // single logical
-                    if (c == '?' || c == '!')
+                    if (c == '>' || c == '<' || c == '?' || c == '!')
                         addToken(c+"", TokenizerTokenType.SINGLE_LOGICAL, true);
                     else
                     // brackets
@@ -230,6 +230,8 @@ public class Tokenizer {
         String result;
         final char nextChar = input.charAt(counter+1);
         switch (input.charAt(counter)) {
+            case '>' -> result = nextChar == '=' ? ">=" : "";
+            case '<' -> result = nextChar == '=' ? "<=" : "";
             case '!' -> result = nextChar == '=' ? "!=" : "";
             case '=' -> result = nextChar == '=' ? "==" : "";
             case '&' -> result = nextChar == '&' ? "&&" : "";

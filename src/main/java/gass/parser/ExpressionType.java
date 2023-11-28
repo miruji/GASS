@@ -2,11 +2,16 @@ package gass.parser;
 
 public enum ExpressionType {
     NONE,
-    NUMBER,
-    STRING,
-    CHAR,
-    PLUS,
-    MINUS,
-    MULTIPLY,
-    DIVIDE,
+    // type
+        NUMBER,
+        STRING,
+        CHAR,
+    // logical
+        GREATER_THAN,
+        LESS_THAN,
+    // math
+        PLUS,
+        MINUS,
+        MULTIPLY,
+        DIVIDE,
 }
