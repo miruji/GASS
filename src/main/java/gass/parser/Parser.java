@@ -6,7 +6,6 @@ import gass.tokenizer.Token;
 import gass.tokenizer.TokenType;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
 
@@ -16,8 +15,10 @@ public class Parser {
     public ArrayList<Class> classes = new ArrayList<>();
     public ArrayList<Block> blocks = new ArrayList<>();
     public final Block mainBlock;
+    public static ArrayList<gass.parser.Stack> stack;
     public Parser(final ArrayList<Token> tokens) {
         this.tokens = tokens;
+        stack = new ArrayList<>();
 
         // func info
         // check   -> check code exceptions
@@ -48,7 +49,7 @@ public class Parser {
         //    renamelobalBlockAssign(block);       // global assign to func/proc/none
 
         mainBlock = Block.getBlock("main", blocks);
-        mainBlock.parseBlock(blocks);
+        mainBlock.parseBlock(blocks, stack);
         //System.out.println("# "+mainBlock.name);
         //declarateVariable(mainBlock); // variables <- in global and local blocks
         //declarateResult(mainBlock);   // return    <- in global and local block

@@ -96,14 +96,14 @@ public class Expression {
                             blockAssign.parameters.get(j).value = new Expression(parameter);
                             blockAssign.parameters.get(j).setValue(block, blocks);
                         }
-                        blockAssign.parseBlock(blocks);
+                        blockAssign.parseBlock(blocks, Parser.stack);
                         expressions.add(blockAssign.result.value);
                     }
                 // local func with no parameters
                 } else {
                     final Block blockAssign = Block.getBlock(currentToken.data, block.localBlocks);
                     if (blockAssign != null) {
-                        blockAssign.parseBlock(blocks);
+                        blockAssign.parseBlock(blocks, Parser.stack);
                         expressions.add(blockAssign.result.value);
                     }
                 }
@@ -153,9 +153,15 @@ public class Expression {
             if (currentToken.type == TokenType.NUMBER || currentToken.type == TokenType.FLOAT)
                 expressions.add(new ExpressionObject(ExpressionType.NUMBER, currentToken.data));
             else
-                // read operators
-                if (Token.checkOperator(currentToken.type))
-                    expressions.add(new ExpressionObject(getType(currentToken.type)));
+            if (currentToken.type == TokenType.SINGLE_QUOTE)
+                expressions.add(new ExpressionObject(ExpressionType.CHAR, currentToken.data));
+            else
+            if (currentToken.type == TokenType.DOUBLE_QUOTE || currentToken.type == TokenType.BACK_QUOTE)
+                expressions.add(new ExpressionObject(ExpressionType.STRING, currentToken.data));
+            else
+            // read operators
+            if (Token.checkOperator(currentToken.type))
+                expressions.add(new ExpressionObject(getType(currentToken.type)));
         }
         // until this moment we could not know how many expression objects
         if (expressions.isEmpty())

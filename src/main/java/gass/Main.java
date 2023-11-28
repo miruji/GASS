@@ -81,8 +81,8 @@ public class Main {
             ".globl _start\n"+
             "_start:\n"
         );
-        for (int i = 0; i < parser.mainBlock.stack.size(); i++) {
-            final Stack stack = parser.mainBlock.stack.get(i);
+        for (int i = 0; i < Parser.stack.size(); i++) {
+            final Stack stack = Parser.stack.get(i);
             outputBuffer.append(stack.toString(String.valueOf(i), "  "));
             outputData.append(stack.data);
         }

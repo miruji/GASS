@@ -17,7 +17,6 @@ public class Block {
     public ArrayList<ArrayList<Token>> lines; // block tokens
     public ArrayList<Block> localBlocks;      // local blocks
     public ArrayList<Variable> variables;     // block variables
-    public ArrayList<Stack> stack;            // result stack
     public BlockResult result;                // result
     /** global block with parameters */
     public Block(final String name, final BlockType type, final ArrayList<Token> parameters, final ArrayList<Token> tokens) {
@@ -27,8 +26,6 @@ public class Block {
 
         lines = new ArrayList<>();
         lines.add(tokens);
-
-        stack = new ArrayList<>();
     }
     /** global block with no parameters */
     public Block(final String name, final BlockType type, final ArrayList<Token> tokens) {
@@ -37,8 +34,6 @@ public class Block {
 
         lines = new ArrayList<>();
         lines.add(tokens);
-
-        stack = new ArrayList<>();
     }
     /** find block by name */
     public static Block findBlock(final String findName, final ArrayList<Block> blocks) {
@@ -360,6 +355,7 @@ public class Block {
         }
 
         // block parameters
+        /*
         if (block.stack != null && !block.stack.isEmpty()) {
             output.append(repeat2).append("Stack:\n");
             for (int i = 0; i < block.stack.size(); i++) {
@@ -367,6 +363,7 @@ public class Block {
             }
             output.append(repeat2).append("~\n");
         }
+        */
 
         // block return
         if (block.result != null && block.result.value != null) {
@@ -381,16 +378,16 @@ public class Block {
         return output.toString();
     }
     /** parse block */
-    public void parseBlock(final ArrayList<Block> blocks) {
+    public void parseBlock(final ArrayList<Block> blocks, final ArrayList<Stack> stack) {
         // read lines and parse
         for (int i = 0; i < lines.size();) {
             final ArrayList<Token> line = lines.get(i);
-            parseLine(line, blocks);
+            parseLine(line, blocks, stack);
             lines.remove(line);
         }
     }
     /** parse line */
-    private void parseLine(final ArrayList<Token> line, final ArrayList<Block> blocks) {
+    private void parseLine(final ArrayList<Token> line, final ArrayList<Block> blocks, final ArrayList<Stack> stack) {
         // rename block call | rename variables and parameters
         for (int i = 0; i < line.size(); i++) {
             final Token currentToken = line.get(i);

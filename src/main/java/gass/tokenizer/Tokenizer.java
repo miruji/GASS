@@ -138,7 +138,7 @@ public class Tokenizer {
                     //
                     if (openSingleComment && noSlash) {
                         counter++;
-                        return result.toString();
+                        return result.deleteCharAt(0).deleteCharAt(result.length()-1).toString();
                     } else openSingleComment = true;
                 }
                 counter++;

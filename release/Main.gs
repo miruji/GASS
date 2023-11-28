@@ -1,19 +1,11 @@
 \*
   test gas script
 *\
-\*
-public MyClass:
-  private test = "test text"
+func ab(a, b):
+  println("It seems to work ...")
+  return a+b
 end
-
-enum testList:
-    TEST1 = "123"
-    TEST2 = "321"
-end
-*\
 func main():
-  a = 2147483647
-  println(a)
-  a = a-11111
-  println(a)
+  println("Hello, how are you?", 20-10)
+  println(ab(10, 20))
 end
