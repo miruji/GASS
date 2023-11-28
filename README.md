@@ -24,26 +24,15 @@ Typing:
 > static, loose, implicit
 
 Block structure:
-> The structure is built on blocks of code. Blocks of code can be functions, procedures, or just blocks. Functions are required to return values, procedures do not return values, and blocks of code will determine their type at build time.
+> The structure is built on code blocks. Blocks of code can be functions or procedures. There is no need to specify anything explicitly, just specify the block name. If the block name is not specified, then it is a temporary block
 ```
-func main():
-  \\ BLOCK
-end
-```
-> In case of implicit type specification for func or proc compiler will check the expected return and operations that  are addressed to the code block name
-```
-proc test:
-  \\ BLOCK
-end
-
-\\ or
-test:
+main():
   \\ BLOCK
 end
 ```
 > Exception: the main function will automatically turn return 0 if return was not specified
 ```
-func main:
+main:
   \\ BLOCK
   return 0;
 end
@@ -55,12 +44,12 @@ end
 ```
 > Parameters can be omitted for global func and proc
 ```
-func main():
+main():
   \\ BLOCK
 end
 
 \\ or
-func main:
+main:
   \\ BLOCK
 end
 
@@ -68,12 +57,8 @@ end
 ```
 > Local or otherwise temporary func or proc are used as areas for stubs, or code for variables, etc. if no need to go beyond a certain section of code
 ```
-proc test:
+test:
   a = :
-    return 10
-  end
-  \\ or
-  a = func:
     return 10
   end
   \\ or
@@ -86,16 +71,16 @@ proc test:
   end
 end
 ```
-> Local variables will be searched first in the local block, then higher up to the global function itself. The very last instance of search is the parameters of the global function. In addition, all changes will be saved only at the local block level.
+> Local variables will be searched first in the local block, then higher up to the global function itself. The very last instance of search is the parameters of the global function. All new variables will remain only inside the block, and changes will be applied to the found instances
 ```
-proc test:
+test:
   a = 10
-  proc:
+  :
     b = 15
     a += b \\ a = 25
   end
   \\ in this place no b variable
-  println(a) \\ a = 10
+  println(a) \\ a = 25
 end
 ```
 Block declaration rule:
@@ -164,10 +149,10 @@ enum testList:
 end
 ```
 variables
-> Variables have a name and assigned value on the right.
+> Variables have a name and assigned value on the right
 ```
 a = "Hello!"
-a = func:
+a = :
   return 10
 end
 ```
