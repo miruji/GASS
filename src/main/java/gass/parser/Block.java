@@ -10,30 +10,35 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 
-import static java.lang.Character.isDigit;
-
 public class Block {
-    public String name;                            // block name
-    public BlockType type;                         // block type
-    public ArrayList<Variable> parameters;         // block parameters
+    public String name;                       // block name
+    public BlockType type;                    // block type
+    public ArrayList<Variable> parameters;    // block parameters
     public ArrayList<ArrayList<Token>> lines; // block tokens
-    public ArrayList<Block> localBlocks;           // local blocks
-    public ArrayList<Variable> variables;          // block variables
-    public BlockResult result;
+    public ArrayList<Block> localBlocks;      // local blocks
+    public ArrayList<Variable> variables;     // block variables
+    public ArrayList<Stack> stack;            // result stack
+    public BlockResult result;                // result
     /** global block with parameters */
     public Block(final String name, final BlockType type, final ArrayList<Token> parameters, final ArrayList<Token> tokens) {
         this.name = name;
         this.type = type;
         addParameters(parameters);
+
         lines = new ArrayList<>();
         lines.add(tokens);
+
+        stack = new ArrayList<>();
     }
     /** global block with no parameters */
     public Block(final String name, final BlockType type, final ArrayList<Token> tokens) {
         this.name = name;
         this.type = type;
+
         lines = new ArrayList<>();
         lines.add(tokens);
+
+        stack = new ArrayList<>();
     }
     /** find block by name */
     public static Block findBlock(final String findName, final ArrayList<Block> blocks) {
@@ -75,21 +80,18 @@ public class Block {
     }
     /** find varible by name in blocks */
     public static Variable findVariableInBlocks(final String findName, final Block currentBlock, final ArrayList<Block> blocks) {
-        // TO:DO: check this
+        if (findName == null || findName.isEmpty() || currentBlock == null || blocks == null || blocks.isEmpty()) return null;
         String[] findNameBuffer = currentBlock.name.split(":");
 
         // find current block -> up to max global
         final ArrayList<Block> buffer = new ArrayList<>();
         for (int i = 0; i < findNameBuffer.length; i++) {
-            System.out.println("\t1: "+String.join(":", findNameBuffer));
             buffer.add( findBlock(String.join(":", findNameBuffer), blocks) );
             findNameBuffer = Arrays.copyOfRange(findNameBuffer, 0, findNameBuffer.length-1);
         }
         Collections.reverse(buffer);
-        System.out.println("\t2: "+buffer.size());
         if (buffer.size() > 1)
             for (final Block b : buffer) {
-                System.out.println("\t3: "+b.name);
                 final Variable result = findVariable(findName, b);
                 if (result != null) return result;
             }
@@ -169,7 +171,7 @@ public class Block {
     public static Block getBlock(final String findName, final ArrayList<Block> blocks) {
         if (findName == null || findName.isEmpty() || blocks == null || blocks.isEmpty()) return null;
 
-        final boolean type = isDigit(findName.charAt(0));
+        final boolean type = Character.isDigit(findName.charAt(0));
         for (int i = 0; i < blocks.size(); i++) {
             final Block findBlock = blocks.get(i);
             if (!type && Objects.equals(findBlock.name, findName)) // find global block by name
@@ -299,9 +301,9 @@ public class Block {
     public static String outputLocalBlocks(final Block block, final int depth) {
         final StringBuilder output = new StringBuilder();
 
-        String repeat = "\t".repeat(Math.max(0, depth));
-        String repeat2 = repeat+"\t";
-        String repeat3 = repeat2+"\t";
+        final String repeat = "\t".repeat(Math.max(0, depth));
+        final String repeat2 = repeat+"\t";
+        final String repeat3 = repeat2+"\t";
 
         // block info
         output.append(repeat).append(block.type).append(" [").append(block.name).append("]:\n");
@@ -357,6 +359,15 @@ public class Block {
             output.append(repeat2).append("~\n");
         }
 
+        // block parameters
+        if (block.stack != null && !block.stack.isEmpty()) {
+            output.append(repeat2).append("Stack:\n");
+            for (int i = 0; i < block.stack.size(); i++) {
+                output.append( block.stack.get(i).toString(String.valueOf(i), repeat3) );
+            }
+            output.append(repeat2).append("~\n");
+        }
+
         // block return
         if (block.result != null && block.result.value != null) {
             output.append(repeat2).append("Return: ")
@@ -371,7 +382,6 @@ public class Block {
     }
     /** parse block */
     public void parseBlock(final ArrayList<Block> blocks) {
-        System.out.println("b: "+name);
         // read lines and parse
         for (int i = 0; i < lines.size();) {
             final ArrayList<Token> line = lines.get(i);
@@ -381,12 +391,12 @@ public class Block {
     }
     /** parse line */
     private void parseLine(final ArrayList<Token> line, final ArrayList<Block> blocks) {
-        // rename block assign | rename variables and parameters
+        // rename block call | rename variables and parameters
         for (int i = 0; i < line.size(); i++) {
             final Token currentToken = line.get(i);
             if (currentToken.type == TokenType.WORD) {
                 if (i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN)
-                    currentToken.type = TokenType.BLOCK_ASSIGN;
+                    currentToken.type = TokenType.BLOCK_CALL;
                 else {
                     final Variable parameter = findParameter(currentToken.data);
                     if (parameter != null) currentToken.type = TokenType.PARAMETER_NAME;
@@ -404,7 +414,6 @@ public class Block {
                 final String variableName = currentToken.data;
                 line.remove(0); // remove name
                 line.remove(0); // remove =
-                //System.out.println(Token.tokensToString(line, true));
 
                 renameVariable(line, blocks);
                 final Variable variable = new Variable(variableName, ExpressionType.NUMBER, new ArrayList<>(line), name);
@@ -416,9 +425,26 @@ public class Block {
                 else
                     parameters.set(parameterIndex, variable);
             } else
+            if (currentToken.type == TokenType.BLOCK_CALL && i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
+                //line.remove(0); // remove call
+
+                renameVariable(line, blocks);
+                System.out.println( Token.tokensToString(line, true) );
+
+                final ArrayList<ArrayList<Token>> lineSeparate = Token.separateTokens(TokenType.COMMA, line.get(i+1).childrens);
+                final ArrayList<ExpressionObject> expressions = new ArrayList<>();
+                expressions.add(new ExpressionObject(ExpressionType.NONE, currentToken.data));
+                for (int j = 0; j < lineSeparate.size(); j++) {
+                    final ArrayList<Token> parameter = lineSeparate.get(j);
+                    final Expression expression = new Expression(parameter);
+                    expression.getValue(expression.value, this, blocks);
+                    expressions.add(expression.valueResult);
+                }
+
+                stack.add( new Stack(StackType.CALL, expressions) );
+            } else
             if (currentToken.type == TokenType.RETURN_VALUE) {
                 line.remove(0); // remove return
-                //System.out.println(Token.tokensToString(line, true));
 
                 renameVariable(line, blocks);
                 final BlockResult result = new BlockResult(new ArrayList<>(line));
@@ -437,7 +463,7 @@ public class Block {
             if (token.type == TokenType.WORD || token.type == TokenType.VARIABLE_NAME || token.type == TokenType.PARAMETER_NAME) {
                 // block assign
                 if (i+1 < tokensSize && tokens.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
-                    token.type = TokenType.BLOCK_ASSIGN;
+                    token.type = TokenType.BLOCK_CALL;
                     continue;
                 }
                 // parameter

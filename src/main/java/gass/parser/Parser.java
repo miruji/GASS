@@ -15,6 +15,7 @@ public class Parser {
     public ArrayList<Enum> enums = new ArrayList<>();
     public ArrayList<Class> classes = new ArrayList<>();
     public ArrayList<Block> blocks = new ArrayList<>();
+    public final Block mainBlock;
     public Parser(final ArrayList<Token> tokens) {
         this.tokens = tokens;
 
@@ -46,7 +47,7 @@ public class Parser {
         //for (final Block block : blocks)
         //    renamelobalBlockAssign(block);       // global assign to func/proc/none
 
-        final Block mainBlock = Block.getBlock("main", blocks);
+        mainBlock = Block.getBlock("main", blocks);
         mainBlock.parseBlock(blocks);
         //System.out.println("# "+mainBlock.name);
         //declarateVariable(mainBlock); // variables <- in global and local blocks
@@ -259,14 +260,14 @@ public class Parser {
                 final Block newBlock = new Block(localBlockName, newBlockType, firstLine.get(i).childrens);
 
                 if (newBlockType == BlockType.NONE) {
-                    firstLine.get(i).type = TokenType.BLOCK_ASSIGN;
+                    firstLine.get(i).type = TokenType.BLOCK_CALL;
                     firstLine.get(i).data = localBlockName;
                     firstLine.get(i).childrens = null;
                 } else {
                     if (newBlockType == BlockType.PROCEDURE)
-                        firstLine.get(i).type = TokenType.PROCEDURE_ASSIGN;
+                        firstLine.get(i).type = TokenType.PROCEDURE_CALL;
                     else
-                        firstLine.get(i).type = TokenType.FUNCTION_ASSIGN;
+                        firstLine.get(i).type = TokenType.FUNCTION_CALL;
                     firstLine.remove(i-1);
                     i--;
 
@@ -306,172 +307,6 @@ public class Parser {
             }
         }
         //
-    }
-     */
-    /** parse global assign to func/proc/none */
-    /*
-    private void renamelobalBlockAssign(final Block block) {
-        final ArrayList<Token> firstLine = block.lines.get(0);
-        if (firstLine == null || firstLine.isEmpty()) return;
-
-        for (int i = 0; i+1 < tokens.size(); i++) {
-            final Token currentToken = tokens.get(i);
-            if (currentToken.type == TokenType.WORD && tokens.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN)
-                currentToken.type = TokenType.BLOCK_ASSIGN;
-        }
-        //
-        if (block.localBlocks != null) {
-            for (final Block localBlock : block.localBlocks)
-                renamelobalBlockAssign(localBlock);
-        }
-    }
-     */
-    /** pre-parse block */
-    /*
-    private void preParseBlock(final String blockName, Block block) {
-        final String[] localBlockName = blockName.split(":");
-        final Block localBlock;
-        if (localBlockName.length == 1)
-            localBlock = Block.getBlock(blockName, blocks);
-        else
-            localBlock = block.localBlocks.get( Integer.parseInt(localBlockName[localBlockName.length-1]) );
-        declarateVariable(localBlock);
-        declarateResult(localBlock);
-        parseBlock(localBlock);
-    }
-     */
-    /** parse block */
-    /*
-    private void parseBlock(final Block block) {
-        if (block == null) return;
-
-        // parse block
-        parseVariable(block);
-        if (block.result != null) {
-            block.result.setValue(block, blocks);
-        }
-    }
-     */
-    /** parse dependency block */
-    /*
-    private void parseDependencyBlock(final int i, final ArrayList<Token> tokens, final Block block) {
-        final Token token = tokens.get(i);
-        if (List.of(TokenType.BLOCK_ASSIGN, TokenType.FUNCTION_ASSIGN, TokenType.PROCEDURE_ASSIGN).contains(token.type) && i+1 < tokens.size()) {
-            final Token nextToken = tokens.get(i+1);
-            if (nextToken.type == TokenType.CIRCLE_BLOCK_BEGIN) {
-                System.out.println(Token.tokensToString(nextToken.childrens, false));
-                final ArrayList<ArrayList<Token>> parameters = Token.separateTokens(TokenType.COMMA, nextToken.childrens);
-
-                final Block dependencyBlock = Block.getBlock(token.data, blocks);
-                for (int j = 0; j < parameters.size(); j++) {
-                    final ArrayList<Token> parameter = parameters.get(j);
-                    if (parameter == null || parameter.isEmpty()) continue;
-                    System.out.println("- "+Token.tokensToString(parameter, false));
-                    //renameVariable(parameter, block);
-                    for (Token t : parameter) {
-                        System.out.println("\t- "+t.type);
-                    }
-                    dependencyBlock.parameters.get(j).value = new Expression( parameters.get(j) );
-                    dependencyBlock.parameters.get(j).setValue(block, blocks);
-                }
-                preParseBlock(token.data, block);
-            }
-        }
-    }
-     */
-    /*
-    private void declarateVariable(final Block block) {
-        final ArrayList<Token> tokens = block.tokens;
-        if (tokens == null || tokens.isEmpty()) return;
-
-        System.out.println("\tdeclarateVariable: "+block.name);
-
-        for (int i = 0; i+1 < tokens.size(); i++) {
-            final Token currentToken = tokens.get(i);
-            if (currentToken.type == TokenType.WORD) {
-                currentToken.type = TokenType.VARIABLE_NAME;
-                // TO:DO: check left public/private or const/final
-
-                // add new variable
-                final ArrayList<Token> variableValue = new ArrayList<>();
-                if (tokens.get(i+1).type == TokenType.EQUAL && tokens.get(i+2).type != TokenType.ENDLINE) {
-                    tokens.remove(i); // remove variable name
-                    tokens.remove(i); // remove =
-
-                    // next read right tokens
-                    while (i < tokens.size()) {
-                        final Token nextToken = tokens.get(i);
-                        if (nextToken.type == TokenType.ENDLINE) {
-                            tokens.remove(i);
-                            i--;
-                            break;
-                        } else {
-                            // checkVariable
-                            variableValue.add(nextToken);
-                            tokens.remove(i);
-                        }
-                    }
-                    renameVariable(variableValue, block);
-                    block.addVariable(currentToken.data, variableValue);
-                    block.variables.get(block.variables.size()-1).setValue(block, blocks);
-                }
-                //
-            } else
-                // link to dependency block code
-                parseDependencyBlock(i, tokens, block);
-        }
-    }
-     */
-    /** declarete return */
-    /*
-    private void declarateResult(final Block block) {
-        if (block.result != null) return;
-
-        System.out.println("\tdeclarateResult: "+block.name);
-        final ArrayList<Token> tokens = block.tokens;
-        if (tokens != null && !tokens.isEmpty()) {
-            for (int i = 0; i < tokens.size(); i++) {
-                final Token currnetToken = tokens.get(i);
-                if (currnetToken.type == TokenType.RETURN_VALUE) {
-                    tokens.remove(i); // remove return
-
-                    // add result
-                    ArrayList<Token> resultValue = new ArrayList<>();
-                    // next read right tokens
-                    // TO:DO: in this parse assigns
-                    while (i < tokens.size()) {
-                        final Token nextToken = tokens.get(i);
-                        if (nextToken.type == TokenType.ENDLINE) {
-                            tokens.remove(i);
-                            i--;
-                            break;
-                        } else {
-                            resultValue.add(nextToken);
-                            tokens.remove(i);
-                        }
-                    }
-                    renameVariable(resultValue, block);
-                    final BlockResult result = new BlockResult(resultValue);
-                    result.setValue(block, blocks);
-                    block.result = result;
-                }
-            }
-            //
-        }
-        // local blocks
-        if (block.localBlocks != null) {
-            for (final Block localBlock : block.localBlocks)
-                preParseBlock(localBlock.name, block);
-        }
-    }
-     */
-    /** parse variables */
-    /*
-    private void parseVariable(final Block block) {
-        final ArrayList<Variable> variables = block.variables;
-        if (variables != null && !variables.isEmpty())
-            for (final Variable variable : variables)
-                variable.setValue(block, blocks);
     }
      */
 }

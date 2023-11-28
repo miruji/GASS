@@ -56,10 +56,10 @@ public enum TokenType {
             END,         // end
         // function & procedure
             FUNCTION, // func
-            FUNCTION_ASSIGN,
+            FUNCTION_CALL,
             PROCEDURE, // proc
-            PROCEDURE_ASSIGN,
-            BLOCK_ASSIGN,
+            PROCEDURE_CALL,
+            BLOCK_CALL,
             RETURN_VALUE, // return
         // variable
             VARIABLE_NAME,

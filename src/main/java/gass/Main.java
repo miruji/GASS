@@ -1,9 +1,8 @@
 package gass;
 
-import gass.parser.Block;
+import gass.parser.*;
 import gass.parser.Class;
 import gass.parser.Enum;
-import gass.parser.Parser;
 import gass.tokenizer.Token;
 import gass.tokenizer.Tokenizer;
 import gass.io.fs.File;
@@ -72,5 +71,26 @@ public class Main {
             outputBuffer.append(Block.outputLocalBlocks(b, 1));
         }
         new Log(LogType.info, outputBuffer.toString());
+
+        /* next output stack */
+        final StringBuilder outputData = new StringBuilder(
+            ".section .data\n"
+        );
+        outputBuffer = new StringBuilder(
+            ".section .text\n"+
+            ".globl _start\n"+
+            "_start:\n"
+        );
+        for (int i = 0; i < parser.mainBlock.stack.size(); i++) {
+            final Stack stack = parser.mainBlock.stack.get(i);
+            outputBuffer.append(stack.toString(String.valueOf(i), "  "));
+            outputData.append(stack.data);
+        }
+        outputBuffer.append(
+            "  #\n"+
+            "  movl $1, %eax\n"+
+            "  xorl %ebx, %ebx\n"+
+            "  int $0x80\n");
+        File.stringToFile("release/Main.s", outputData.append(outputBuffer).toString());
     }
 }
