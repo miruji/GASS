@@ -1,17 +1,26 @@
 # gass (GNU Assembler Script)
 High-level script language for GAS
 
+## Problems that caused development to be stopped
+
+1. The gass syntax implies the use of implicit data types, which should fall on the shoulders of the language itself, and this creates difficulties when working with GAS
+2. It was never decided what gass should do in this case; it should calculate the entire program in advance as it is now and produce only the result, or leave all code blocks on pure GAS. This cannot be solved as long as the language has only one print/println as a usable function, but if there are more functions, the solution will be found intuitively
+3. GCC uses GAS, which means that C code will work the same with gass and then has no meaning other than the syntax
+
+> If you think that these problems are a trifle and you are ready to continue development, then the code is at your disposal, and everything that is stated below explains the main idea.
+
 ## Introduction
 
-*So, this is my long-standing idea to write my own programming language. This is probably 5 or 7, I don’t know which attempt. However, most of all I thought about the concept and made repeated attempts to write something working in this regard. The gass concept does not involve the creation or use of byte and bit code machines or ready-made solutions. This is too dependent and expensive. In addition, I do not expect any performance gains using this development approach. During my time on archlinux, I really liked it and I thought it would be cool to have something productive for writing programs. Previously I would have used C++, now I would use Java, however, I don't think they fit my requirements. So I thought it would be a good idea to write a compiler for the language that would produce pure assembly code as output. This is the most productive work option in my opinion. Previously, I made such an attempt and wrote a compiler in Pascal, the language syntax was C-similar and gave nasm code. I got pretty discouraged after one Internet user told me about LLVM, but now I think that my path was really the right one. Over the past few years, I have only strengthened my programming skills. That's why this gass project exists, which involves creating a high-level scripting language for compiling and obtaining code in gas (GNU Assembler).*
+*So, I’ve been thinking about creating a project like this for a long time. The gass concept does not involve the creation or use of machines for processing byte and bit codes or the use of ready-made solutions. It's too dependent and expensive. Additionally, I don't expect any performance gains using this development approach. Besides, C-like languages, and Java in particular, are not suitable for achieving the end goal of the gass language. So I thought it would be a good idea to write a compiler for this language that would produce pure assembly code as output. In my opinion, this is the most productive way to work. In the case of JIT, it would be necessary to run such code when processing rows,
+in the case of the latest version of gass, it simply issues the code to GAS. The interpreter in this case should not be implemented. The project involves the creation of a high-level scripting language for compiling and obtaining code in GAS (GNU Assembler).*
 
 Java is used to develop the compiler because it is cross-platform, simple, and better suited for the task. Where possible, comments will be left on the code and the same syntax will be used.
 The working process is as follows:
-  1. Getting code from a .gs file, 
-  2. Tokenization and code parsing
-  3. Getting AST and optimizing the code
-  4. Obtaining gas code from AST
-  5. Building a program or running part of a program in real time.
+  1. ~~Getting code from a .gs file~~
+  2. ~~Tokenization and code parsing~~
+  3. ~~Getting AST~~ and optimizing the code
+  4. ~~Obtaining gas code from AST~~
+  5. ~~Building a program~~ or running part of a program in real time.
      > GAS in this case is an intermediate representation between gass and machine code
   7. * Writing code in gas/C/gass and implementing it in point 4 to get more gass functionality
      > Thus, the initial core of libraries and functionality will be written in GAS, with the possibility of extending the gass language itself. I don't think it's impossible to write anything in GAS, so the plan is to simply add more functionality over time.
