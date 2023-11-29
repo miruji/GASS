@@ -141,11 +141,8 @@ public class Expression {
             if (currentToken.type == TokenType.CIRCLE_BLOCK_BEGIN && currentToken.childrens != null && !currentToken.childrens.isEmpty()) {
                 expressions.add(getValue(currentToken.childrens, block, blocks));
             } else
-            // read block assign
-            if (currentToken.type == TokenType.PROCEDURE_CALL) {
-                // TO:DO: exception
-            } else
-            if (currentToken.type == TokenType.BLOCK_CALL || currentToken.type == TokenType.FUNCTION_CALL) {
+            // read block call
+            if (currentToken.type == TokenType.BLOCK_CALL) {
                 // global func with parameters
                 if (i+1 < value.size() && value.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
                     i++;

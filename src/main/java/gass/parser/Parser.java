@@ -45,14 +45,9 @@ public class Parser {
         parseGlobalBlocks(); // func/proc/none global block
         tokens.clear();      // clear all tokenizer tokens
     //    checkProcedureAssign();                  // check (= PROCEDURE_ASSIGN)
-        //for (final Block block : blocks)
-        //    renamelobalBlockAssign(block);       // global assign to func/proc/none
 
         mainBlock = Block.getBlock("main", blocks);
         mainBlock.parseBlock(blocks);
-        //System.out.println("# "+mainBlock.name);
-        //declarateVariable(mainBlock); // variables <- in global and local blocks
-        //declarateResult(mainBlock);   // return    <- in global and local block
     }
     /** get error line tokens output */
     private String getErrorLineOutput(final int errorToken, final ArrayList<Token> tokens) {
@@ -197,24 +192,11 @@ public class Parser {
         declareLines(block);
         blocks.add(block);
     }
-    /** parse global block func/proc/none */
+    /** parse global block */
     private void parseGlobalBlocks() {
         for (int i = 0; i+1 < tokens.size(); i++) {
             // type
-            final BlockType type;
-            if (i-1 >= 0) {
-                if (tokens.get(i-1).type == TokenType.FUNCTION) {
-                    type = BlockType.FUNCTION;
-                    tokens.remove(i-1);
-                    i--;
-                } else
-                if (tokens.get(i-1).type == TokenType.PROCEDURE) {
-                    type = BlockType.PROCEDURE;
-                    tokens.remove(i-1);
-                    i--;
-                } else type = BlockType.NONE;
-            } else type = BlockType.NONE;
-
+            final BlockType type = BlockType.NONE;
 
             // declaration
             final Token token2 = tokens.get(i+1);
@@ -239,7 +221,7 @@ public class Parser {
         }
         //
     }
-    /** cycle parse local block proc/func/none  */
+    /** cycle parse local  */
     private void declareLocalBlocks(final Block block) {
         if (block.lines == null) return; // if no tokens in global block => no local blocks
         final ArrayList<Token> firstLine = block.lines.get(0);
@@ -248,14 +230,7 @@ public class Parser {
         int assignNum = 0;
         for (int i = 0; i < firstLine.size(); i++) {
             if (firstLine.get(i).type == TokenType.BLOCK_BEGIN) {
-                final BlockType newBlockType;
-                if (firstLine.get(i-1).type == TokenType.PROCEDURE)
-                    newBlockType = BlockType.PROCEDURE;
-                else
-                if (firstLine.get(i-1).type == TokenType.FUNCTION)
-                    newBlockType = BlockType.FUNCTION;
-                else
-                    newBlockType = BlockType.NONE;
+                final BlockType newBlockType = BlockType.NONE;
 
                 final String localBlockName = block.name+':'+assignNum;
                 final Block newBlock = new Block(localBlockName, newBlockType, firstLine.get(i).childrens);
@@ -266,9 +241,9 @@ public class Parser {
                     firstLine.get(i).childrens = null;
                 } else {
                     if (newBlockType == BlockType.PROCEDURE)
-                        firstLine.get(i).type = TokenType.PROCEDURE_CALL;
+                        firstLine.get(i).type = TokenType.BLOCK_CALL;
                     else
-                        firstLine.get(i).type = TokenType.FUNCTION_CALL;
+                        firstLine.get(i).type = TokenType.BLOCK_CALL;
                     firstLine.remove(i-1);
                     i--;
 

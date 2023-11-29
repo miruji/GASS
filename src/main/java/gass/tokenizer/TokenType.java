@@ -59,10 +59,6 @@ public enum TokenType {
             BLOCK_BEGIN, // :
             END,         // end
         // function & procedure
-            FUNCTION, // func
-            FUNCTION_CALL,
-            PROCEDURE, // proc
-            PROCEDURE_CALL,
             BLOCK_CALL,
             RETURN_VALUE, // return
         // variable

@@ -102,8 +102,6 @@ public class Token implements Serializable {
             case WORD -> switch (data) {
                 case "end" -> TokenType.END;
                 case "return" -> TokenType.RETURN_VALUE;
-                case "func" -> TokenType.FUNCTION;
-                case "proc" -> TokenType.PROCEDURE;
                 case "private" -> TokenType.PRIVATE;
                 case "public" -> TokenType.PUBLIC;
                 case "enum" -> TokenType.ENUM;
@@ -226,7 +224,7 @@ public class Token implements Serializable {
             final TokenType type = token.type;
 
             //
-            if (List.of(TokenType.BLOCK_CALL, TokenType.FUNCTION_CALL, TokenType.PROCEDURE_CALL).contains(type) &&
+            if (type == TokenType.BLOCK_CALL &&
                ( (i+1 < tokens.size() && !List.of(TokenType.CIRCLE_BLOCK_BEGIN, TokenType.FIGURE_BLOCK_BEGIN, TokenType.SQUARE_BLOCK_BEGIN).contains( tokens.get(i+1).type )) ||
                   i+1 == tokens.size()) ) {
                 result.append("LB["); // local block assign

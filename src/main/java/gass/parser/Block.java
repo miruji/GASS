@@ -405,7 +405,7 @@ public class Block implements Serializable {
             final ArrayList<Token> line = lines.get(i);
             parseLine(line, blocks);
 
-            System.out.println( "line: "+Token.tokensToString(line, true) );
+            //System.out.println( "line: "+Token.tokensToString(line, true) );
             lines.remove(line);
         }
     }
@@ -479,7 +479,7 @@ public class Block implements Serializable {
             } else
             // if
             if (currentToken.type == TokenType.IF && i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN &&
-                i+2 < line.size() && List.of(TokenType.BLOCK_CALL, TokenType.FUNCTION_CALL, TokenType.PROCEDURE_CALL).contains(line.get(i+2).type) ) {
+                i+2 < line.size() && line.get(i+2).type == TokenType.BLOCK_CALL ) {
                 // check condition
                 final ArrayList<Token> conditionTokens = line.get(i+1).childrens;
                 renameVariable(conditionTokens, blocks);
@@ -492,7 +492,7 @@ public class Block implements Serializable {
             } else
             // while
             if (currentToken.type == TokenType.WHILE && i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN &&
-                    i+2 < line.size() && List.of(TokenType.BLOCK_CALL, TokenType.FUNCTION_CALL, TokenType.PROCEDURE_CALL).contains(line.get(i+2).type) ) {
+                i+2 < line.size() && line.get(i+2).type == TokenType.BLOCK_CALL ) {
                 // check condition
                 final ArrayList<Token> conditionTokens = line.get(i+1).childrens;
                 renameVariable(conditionTokens, blocks);
@@ -510,7 +510,7 @@ public class Block implements Serializable {
             // block call
             if (currentToken.type == TokenType.BLOCK_CALL && i+1 < line.size() && line.get(i+1).type == TokenType.CIRCLE_BLOCK_BEGIN) {
                 renameVariable(line, blocks);
-                System.out.println( Token.tokensToString(line, true) );
+                //System.out.println( Token.tokensToString(line, true) );
 
                 final ArrayList<ArrayList<Token>> lineSeparate = Token.separateTokens(TokenType.COMMA, line.get(i+1).childrens);
                 final ArrayList<ExpressionObject> expressions = new ArrayList<>();
