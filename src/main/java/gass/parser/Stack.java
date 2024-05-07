@@ -37,7 +37,7 @@ public class Stack {
 
                 // print
                 if (callName.equals("print") || callName.equals("println")) {
-                    final String dataName = callName2+'_'+(i-1);
+                    final String dataName = callName2+'_'+String.valueOf(i-1);
                     if (i == 1)
                         data.append("# ").append(callName2).append("\n");
                     data.append(dataName).append(":\n");

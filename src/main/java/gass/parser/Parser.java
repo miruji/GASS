@@ -14,7 +14,6 @@ public class Parser {
     public ArrayList<Enum> enums = new ArrayList<>();
     public ArrayList<Class> classes = new ArrayList<>();
     public ArrayList<Block> blocks = new ArrayList<>();
-    public final Block mainBlock;
     public static ArrayList<gass.parser.Stack> stack;
     public Parser(final ArrayList<Token> tokens) {
         this.tokens = tokens;
@@ -43,11 +42,13 @@ public class Parser {
         declarateClass(); // public/private class
 
         parseGlobalBlocks(); // func/proc/none global block
+        
+        addGlobalBlock("main", BlockType.FUNCTION, new ArrayList<>(tokens));
         tokens.clear();      // clear all tokenizer tokens
     //    checkProcedureAssign();                  // check (= PROCEDURE_ASSIGN)
 
-        mainBlock = Block.getBlock("main", blocks);
-        mainBlock.parseBlock(blocks);
+        //mainBlock = Block.getBlock("main", blocks);
+        blocks.get(blocks.size()-1).parseBlock(blocks);
     }
     /** get error line tokens output */
     private String getErrorLineOutput(final int errorToken, final ArrayList<Token> tokens) {

@@ -1,18 +1,34 @@
 # gass (GNU Assembler Script)
 High-level script language for GAS
 
-## Problems that caused development to be stopped
+## A few important notes
 
-1. The gass syntax implies the use of implicit data types, which should fall on the shoulders of the language itself, and this creates difficulties when working with GAS
-2. It was never decided what gass should do in this case; it should calculate the entire program in advance as it is now and produce only the result, or leave all code blocks on pure GAS. This cannot be solved as long as the language has only one print/println as a usable function, but if there are more functions, the solution will be found intuitively
-3. GCC uses GAS, which means that C code will work the same with gass and then has no meaning other than the syntax
-
-> If you think that these problems are a trifle and you are ready to continue development, then the code is at your disposal, and everything that is stated below explains the main idea.
+1. Previously, I made a comment that GCC uses GAS and therefore this project does not make sense. However, in practice everything turned out to be completely different. There is not enough information yet due to too little functionality of GASS, but the usual output on Linux x64 when compressed with upx -q -q -q looks like this (5 runs of perf):
+   ```
+    Compiler | Task-Clock | Instructions | File Size |  GHz
+    GAS        0.21 msec      47,511        3.7KiB     0.279
+    GCC C      0.54 msec      216,734       5.4KiB     0.428
+    Clang C    0.54 msec      216,444       5.7KiB     0.516
+    GCC C++    1.12 msec     2,685,009      6.1KiB     0.646
+    Rust       2.62 msec     7,684,702     182.3KiB    2.826
+    D          3.31 msec     10,743,599    296.5KiB    2.955
+    Go         6.96 msec     21,421,797     1.2MiB     3.415
+   ```
+   I associate this with:
+     1. The functions used in GASS were currently written separately in GAS and do not have unnecessary dependencies.
+     2. The GASS compiler calculates everything to the maximum limits, which leaves no living parts in the program code.
+   
+   The actual code is at your disposal, and everything below explains the basic idea and distribution rule.
+2. The GASS compiler must calculate the entire program to the limit in advance and produce only the result. In cases where this is not possible, he leaves live sections of the code with their own optimizations.
+3. GASS should rely first of all on GAS, secondly on GASS code, and only lastly on insertions from other languages. All primary types created for GASS are written in GAS and are fully compatible but extended.
 
 ## Introduction
 
-*So, I’ve been thinking about creating a project like this for a long time. The gass concept does not involve the creation or use of machines for processing byte and bit codes or the use of ready-made solutions. It's too dependent and expensive. Additionally, I don't expect any performance gains using this development approach. Besides, C-like languages, and Java in particular, are not suitable for achieving the end goal of the gass language. So I thought it would be a good idea to write a compiler for this language that would produce pure assembly code as output. In my opinion, this is the most productive way to work. In the case of JIT, it would be necessary to run such code when processing rows,
-in the case of the latest version of gass, it simply issues the code to GAS. The interpreter in this case should not be implemented. The project involves the creation of a high-level scripting language for compiling and obtaining code in GAS (GNU Assembler).*
+*So, the concept of gas does not imply the creation or use of machines for processing byte and bit codes or the use of ready-made solutions. It's too dependent, expensive, and besides, I don't expect any performance gains from using this development approach.*
+
+*Now perhaps about other languages. Family C-Similar languages and C itself do not look like an ideal solution, so I would say that GASS is a branch of this branch of languages at the expense of GAS (GNU Assembler). The output is supposed to be pure assembler code and then machine code for the required architectures. In my opinion, this is the most productive way to work.*
+
+*GASS only works in compile mode, has its own type system and high-level syntax and is fully compatible with GAS, since it is based on it.*
 
 Java is used to develop the compiler because it is cross-platform, simple, and better suited for the task. Where possible, comments will be left on the code and the same syntax will be used.
 The working process is as follows:
@@ -35,50 +51,46 @@ Typing:
 Block structure:
 > The structure is built on code blocks. Blocks of code can be functions or procedures. There is no need to specify anything explicitly, just specify the block name. If the block name is not specified, then it is a temporary block
 ```
-main():
-  \\ BLOCK
-end
-```
-> Exception: the main function will automatically turn return 0 if return was not specified
-```
 main:
-  \\ BLOCK
-  return 0;
-end
-
-\\ or
-main:
-  \\ BLOCK
-end
+  # BLOCK
+;
 ```
-> Parameters can be omitted for global func and proc
+> Exception: the main program function will automatically turn return 0 if return was not specified
 ```
-main():
-  \\ BLOCK
-end
+println(10)
+= 0
 
-\\ or
+# or
+println(10)
+```
+> Parameters can be omitted for global methods
+```
+ab(a: I, b: I):
+  # block
+;
+
+# or
 main:
-  \\ BLOCK
-end
+  # block
+;
 
-\\ in local func & proc -> no parameters
+# in local methods -> no parameters
 ```
 > Local or otherwise temporary func or proc are used as areas for stubs, or code for variables, etc. if no need to go beyond a certain section of code
 ```
 test:
   a = :
     return 10
-  end
-  \\ or
+  ;
+  # or
   a = 10
 
   b = :
     println(10)
-    \* no return and b wait =
-       then return exception *\
-  end
-end
+    ## no return and b wait =
+       then return exception ##
+  ;
+;
 ```
 > Local variables will be searched first in the local block, then higher up to the global function itself. The very last instance of search is the parameters of the global function. All new variables will remain only inside the block, and changes will be applied to the found instances
 ```
@@ -86,17 +98,17 @@ test:
   a = 10
   :
     b = 15
-    a += b \\ a = 25
-  end
-  \\ in this place no b variable
-  println(a) \\ a = 25
-end
+    a += b # a = 25
+  ;
+  # in this place no b variable
+  println(a) # a = 25
+;
 ```
 Block declaration rule:
 ```
-global in global -> none
-local in global -> yes
-local in local -> yes
+global in global -> nope
+local  in global -> yes
+local  in local  -> yes
 ```
 Other types of blocks:
 > loops, classes, enums ...
@@ -105,69 +117,62 @@ if & switch
 > As before, we use the usual temporary sections of code : end
 ```
 a = 10
-if (a == 10):
-  \\ BLOCK
-end
+if a == 10:
+  # block
+;
 
 a = 10
-switch (a):
+switch a:
   case 9:
-    \\ BLOCK
-  end
+    # block
+  ;
   default:
-    \\ go this
-  end
-end
+    # go here
+  ;
+;
 ```
 cycles
 ```
-for (i = 0, i < 10, i++):
- \\ BLOCK
-end
+loop i = 0, i < 10, i++:
+  # block
+;
 
-while(true):
- \\ BLOCK
-end
-
-dowhile(true): \\ template to:do:
- \\ BLOCK
-end
+loop true:
+  # block
+;
 ```
 classes
 > Thus classes are designed for OOP and wrapping global functions and variables into objects. Access is regulated by private and public flags both when declaring a class and internally for specific elements
 ```
-MyFunction:
-  \\ BLOCK
-end
+myFunction:
+  # block
+;
 
-public MyClass:
-  \\ BLOCK
-  private test = "test text"
-end
-
-private MyClass2:
-  \\ BLOCK
+MyClass: 
+  # block
   test = "test text"
-end
+;
 ```
 enum
 ```
-enum testList:
-  TEST1 = "123"
-  TEST2 = "321"
-end
+list:
+  # block
+  "apples" = 10
+  "pears" = 20
+;
 ```
 variables
 > Variables have a name and assigned value on the right
 ```
 a = "Hello!"
 a = :
-  return 10
-end
+  # block
+  10
+;
 ```
 gas code
 ```
 asm:
-  # ASM BLOCK
+  # asm block
 end
 ```

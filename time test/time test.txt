@@ -1,0 +1,115 @@
+Perhaps the measurement was made inaccurately or incorrectly, 
+but you need to understand that GASS uses its own libraries 
+and communicates directly with the processor. Therefore, 
+I am more than confident that he is faster than the other 
+candidates. However, another question is whether it will be 
+faster in tasks other than simple inference. It is also worth 
+remembering that GASS does not yet have its own optimization 
+and error output, although all this is available in huge 
+quantities. Therefore, it can be done many times faster with 
+more correct and accurate compilation.
+
+GAS
+    0.21 msec task-clock:u                     #    0.324 CPUs utilized               ( +-  5.87% )
+       0      context-switches:u               #    0.000 /sec
+       0      cpu-migrations:u                 #    0.000 /sec
+       9      page-faults:u                    #   43.650 K/sec
+  57,560      cycles:u                         #    0.279 GHz                         ( +-  3.47% )
+     123      stalled-cycles-frontend:u        #    0.21% frontend cycles idle        ( +-  9.73% )
+   3,209      stalled-cycles-backend:u         #    5.58% backend cycles idle         ( +- 61.25% )
+  47,511      instructions:u                   #    0.83  insn per cycle
+                                        #    0.07  stalled cycles per insn
+  14,444      branches:u                       #   70.053 M/sec
+<not counted>      branch-misses:u                                                         (0.00%)
+
+0.0006368 +- 0.0000351 seconds time elapsed  ( +-  5.51% )
+
+GCC C
+    0.54 msec task-clock:u                     #    0.538 CPUs utilized               ( +-  5.65% )
+       0      context-switches:u               #    0.000 /sec
+       0      cpu-migrations:u                 #    0.000 /sec
+      59      page-faults:u                    #  109.949 K/sec                       ( +-  0.34% )
+ 229,508      cycles:u                         #    0.428 GHz                         ( +- 25.80% )  (76.30%)
+     939      stalled-cycles-frontend:u        #    0.41% frontend cycles idle        ( +-  0.94% )
+  11,618      stalled-cycles-backend:u         #    5.06% backend cycles idle         ( +- 21.99% )
+ 216,734      instructions:u                   #    0.94  insn per cycle
+                                        #    0.05  stalled cycles per insn     ( +-  0.01% )
+  58,687      branches:u                       #  109.365 M/sec                       ( +-  0.00% )
+   2,449      branch-misses:u                  #    4.17% of all branches             ( +- 44.34% )  (23.70%)
+
+0.0009979 +- 0.0000536 seconds time elapsed  ( +-  5.38% )
+
+Clang C
+    0.54 msec task-clock:u                     #    0.540 CPUs utilized               ( +-  6.08% )
+       0      context-switches:u               #    0.000 /sec
+       0      cpu-migrations:u                 #    0.000 /sec
+      59      page-faults:u                    #  109.925 K/sec                       ( +-  0.34% )
+ 277,135      cycles:u                         #    0.516 GHz                         ( +-  5.31% )  (96.19%)
+     976      stalled-cycles-frontend:u        #    0.35% frontend cycles idle        ( +-  1.07% )
+  14,250      stalled-cycles-backend:u         #    5.14% backend cycles idle         ( +-  3.39% )
+ 216,444      instructions:u                   #    0.78  insn per cycle
+                                        #    0.07  stalled cycles per insn     ( +-  0.00% )
+  58,485      branches:u                       #  108.965 M/sec                       ( +-  0.00% )
+   1,895      branch-misses:u                  #    3.24% of all branches             ( +- 48.14% )  (3.81%)
+
+0.0009934 +- 0.0000640 seconds time elapsed  ( +-  6.44% )
+
+C++
+    1.12 msec task-clock:u                     #    0.708 CPUs utilized               ( +-  4.55% )
+       0      context-switches:u               #    0.000 /sec
+       0      cpu-migrations:u                 #    0.000 /sec
+     130      page-faults:u                    #  115.682 K/sec                       ( +-  0.49% )
+ 725,599      cycles:u                         #    0.646 GHz                         ( +- 19.27% )  (36.87%)
+   4,924      stalled-cycles-frontend:u        #    0.68% frontend cycles idle        ( +-  5.40% )
+  21,148      stalled-cycles-backend:u         #    2.91% backend cycles idle         ( +- 25.12% )
+2,685,009      instructions:u                   #    3.70  insn per cycle
+                                        #    0.01  stalled cycles per insn     ( +-  0.00% )
+ 483,906      branches:u                       #  430.609 M/sec                       ( +-  0.00% )
+  19,314      branch-misses:u                  #    3.99% of all branches             ( +-  3.95% )  (63.13%)
+
+0.0015876 +- 0.0000806 seconds time elapsed  ( +-  5.07% )
+
+Rust
+        2.62 msec task-clock:u                     #    0.855 CPUs utilized               ( +-  1.87% )
+           0      context-switches:u               #    0.000 /sec
+           0      cpu-migrations:u                 #    0.000 /sec
+         151      page-faults:u                    #   57.711 K/sec                       ( +-  0.49% )
+   7,392,860      cycles:u                         #    2.826 GHz                         ( +-  2.04% )  (60.61%)
+      21,137      stalled-cycles-frontend:u        #    0.29% frontend cycles idle        ( +- 13.13% )  (61.04%)
+      13,186      stalled-cycles-backend:u         #    0.18% backend cycles idle         ( +- 41.72% )  (95.72%)
+   7,684,702      instructions:u                   #    1.04  insn per cycle
+                                            #    0.00  stalled cycles per insn     ( +-  0.00% )
+   2,842,164      branches:u                       #    1.086 G/sec                       ( +-  0.00% )
+     270,479      branch-misses:u                  #    9.52% of all branches             ( +-  1.01% )  (82.62%)
+
+   0.0030594 +- 0.0000813 seconds time elapsed  ( +-  2.66% )
+
+D
+        3.31 msec task-clock:u                     #    0.872 CPUs utilized               ( +-  1.39% )
+           0      context-switches:u               #    0.000 /sec
+           0      cpu-migrations:u                 #    0.000 /sec
+         257      page-faults:u                    #   77.594 K/sec                       ( +-  0.36% )
+   9,786,438      cycles:u                         #    2.955 GHz                         ( +-  1.71% )  (69.78%)
+      24,366      stalled-cycles-frontend:u        #    0.25% frontend cycles idle        ( +-  4.85% )  (69.80%)
+      23,846      stalled-cycles-backend:u         #    0.24% backend cycles idle         ( +- 31.49% )  (82.53%)
+  10,743,599      instructions:u                   #    1.10  insn per cycle
+                                            #    0.00  stalled cycles per insn     ( +-  1.68% )
+   3,974,313      branches:u                       #    1.200 G/sec                       ( +-  0.00% )
+     299,126      branch-misses:u                  #    7.53% of all branches             ( +-  0.55% )  (77.88%)
+
+   0.0037977 +- 0.0000868 seconds time elapsed  ( +-  2.29% )
+
+Go
+       6.96 msec task-clock:u                     #    0.969 CPUs utilized               ( +-  0.25% )
+          0      context-switches:u               #    0.000 /sec
+          0      cpu-migrations:u                 #    0.000 /sec
+        500      page-faults:u                    #   71.796 K/sec                       ( +-  0.49% )
+ 23,779,986      cycles:u                         #    3.415 GHz                         ( +-  3.15% )  (85.54%)
+     48,043      stalled-cycles-frontend:u        #    0.20% frontend cycles idle        ( +-  5.68% )  (85.54%)
+     39,499      stalled-cycles-backend:u         #    0.17% backend cycles idle         ( +- 38.66% )  (85.53%)
+ 21,421,797      instructions:u                   #    0.90  insn per cycle
+                                           #    0.00  stalled cycles per insn     ( +-  0.11% )  (85.55%)
+  8,347,642      branches:u                       #    1.199 G/sec                       ( +-  1.63% )  (85.49%)
+    768,684      branch-misses:u                  #    9.21% of all branches             ( +-  2.71% )  (75.73%)
+
+  0.0071907 +- 0.0000463 seconds time elapsed  ( +-  0.64% )

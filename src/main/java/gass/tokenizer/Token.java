@@ -184,12 +184,12 @@ public class Token implements Serializable {
     /** tokens tree output */
     public static String outputChildrens(final Token token, final int depth) {
         final StringBuilder output = new StringBuilder();
-        output.append("\t".repeat(Math.max(0, depth)));
+        output.append("  ".repeat(Math.max(0, depth)));
 
         if (token.data != null && !token.data.isEmpty())
-            output.append(token.type).append(" [").append(token.data).append("]\n");
+            output.append("[").append(token.data).append("] ").append(token.type).append('\n');
         else
-            output.append(token.type).append('\n');
+            output.append(typeToString(token.type)).append('\n');
 
         if (token.childrens != null && !token.childrens.isEmpty())
             for (final Token child : token.childrens)

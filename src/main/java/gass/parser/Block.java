@@ -317,9 +317,9 @@ public class Block implements Serializable {
     public static String outputLocalBlocks(final Block block, final int depth) {
         final StringBuilder output = new StringBuilder();
 
-        final String repeat = "\t".repeat(Math.max(0, depth));
-        final String repeat2 = repeat+"\t";
-        final String repeat3 = repeat2+"\t";
+        final String repeat = "  ".repeat(Math.max(0, depth));
+        final String repeat2 = repeat+"  ";
+        final String repeat3 = repeat2+"  ";
 
         // block info
         output.append(repeat).append(block.type).append(" [").append(block.name).append("]:\n");
@@ -369,8 +369,8 @@ public class Block implements Serializable {
                     output.append(repeat3).append("[").append(p.blockName).append('~').append(p.name).append(':').append(i).append("]\n");
                 else
                     output.append(repeat3).append("[").append(p.blockName).append('~').append(p.name).append(':').append(i).append("] =")
-                            .append(" [").append( Token.tokensToString(p.value.value, true) ).append("]")
-                            .append(" -> [").append( p.resultValue != null ? p.resultValue.value : "" ).append("]\n");
+                          .append(" [").append( Token.tokensToString(p.value.value, true) ).append("]")
+                          .append(" -> [").append( p.resultValue != null ? p.resultValue.value : "" ).append("]\n");
             }
             output.append(repeat2).append("~\n");
         }
