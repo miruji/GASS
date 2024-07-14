@@ -1,0 +1,20 @@
+[package]
+name = "gass"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+colored = "2.0"
+termion = "1.5"
+lazy_static = "1.4.0"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+strip = "symbols"
+overflow-checks = true
