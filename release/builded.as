@@ -1,7 +1,22 @@
 .section .data
+#a
+a:
+  .string "10"
+
+# if_0
+if_0_1:
+  .string "10"
+
 # println_0
 println_0_0:
   .string "[1m[48;2;255;0;0mwhite bold text in red bg![m"
+
+# if_1
+if_1_0:
+  .string "1"
+
+if_1_1:
+  .string "10"
 
 # println_1
 println_1_0:
@@ -14,17 +29,30 @@ println_2_0:
 .section .text
 .globl _start
 _start:
-  # println_0
-  movl $println_0_0, %ecx
-  call println
+  # if_0
+  movl $a, %eax
+  cmp $if_0_1, %eax
+  jne endif_0
 
-    # println_1
-    movl $println_1_0, %ecx
+    # println_0
+    movl $println_0_0, %ecx
     call println
 
-  # println_2
-  movl $println_2_0, %ecx
-  call println
+      # if_1
+      movl $if_1_0, %eax
+      cmp $if_1_1, %eax
+      jne endif_1
+
+        # println_1
+        movl $println_1_0, %ecx
+        call println
+
+      endif_1:
+  endif_0:
+  # else
+    # println_2
+    movl $println_2_0, %ecx
+    call println
 
 exit:
   movl $1, %eax  # todo: exit func

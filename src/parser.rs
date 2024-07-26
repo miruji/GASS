@@ -206,7 +206,7 @@ unsafe fn defineLowerStruct(methods: &mut Vec<Method>, lists: &mut Vec<List>) {
      ? condition
        block
 */
-unsafe fn searchCondition(lines: &mut Vec<Line>, lineIndex: usize, linesLength: &mut usize) -> bool {
+unsafe fn searchCondition(lines: &mut Vec<Line>, lineIndex: usize, linesLength: &mut usize, identString: String) -> bool {
     let tokens:    &mut Vec<Token> = &mut lines[lineIndex].tokens;
     let mut token: &Token = &tokens[0];
 
@@ -248,15 +248,75 @@ unsafe fn searchCondition(lines: &mut Vec<Line>, lineIndex: usize, linesLength: 
         }
 
         // read conditions
-        let mut conditionTruth: bool = false;
+        //let mut conditionTruth: bool = false;
         for condition in &mut conditions {
             // if elif
             if condition.tokens.len() != 0 {
                 //println!("  !  if elif");
-                {   // todo: move mcl up ?
-                    let mcl: MutexGuard<'static, MemoryCellList> = getMemoryCellList();
-                    conditionTruth = mcl.expression(&mut condition.tokens,0).data == "true";
-                }
+                //{   // todo: move mcl up ?
+                //    let mcl: MutexGuard<'static, MemoryCellList> = getMemoryCellList();
+                //    conditionTruth = mcl.expression(&mut condition.tokens,0).data == "true";
+                //}
+                // IF BEGIN
+
+                //outputTokens(&condition.tokens,0,0);
+                //println!(">>> 1 {}",&condition.tokens[0].dataType.to_string());
+                //println!(">>> 2 {}",&condition.tokens[2].dataType.to_string());
+
+                let ifBuffer: usize = _if;
+
+                __data.push(
+                    format!(
+                        "# if_{}",
+                        ifBuffer
+                    )
+                );
+                // left
+                let leftToken = &condition.tokens[0];
+                let leftValue: String;
+                if leftToken.dataType != TokenType::Word {
+                    leftValue = format!("if_{}_0",ifBuffer);
+                    __data.push(
+                        format!(
+                            "{}:\n  .string \"{}\"\n",
+                            leftValue,
+                            leftToken
+                        )
+                    );
+                } else {
+                    leftValue = leftToken.data.clone();
+                };
+                // right
+                let rightToken = &condition.tokens[2];
+                let rightValue: String;
+                if rightToken.dataType != TokenType::Word {
+                    rightValue = format!("if_{}_1",ifBuffer);
+                    __data.push(
+                        format!(
+                            "{}:\n  .string \"{}\"\n",
+                            rightValue,
+                            rightToken
+                        )
+                    );
+                } else {
+                    rightValue = rightToken.data.clone();
+                };
+                //
+                _indentation += 1;
+                __text.push(
+                    format!(
+                        "{}# if_{}\n{}movl ${}, %eax\n{}cmp ${}, %eax\n{}jne endif_{}\n",
+                        identString,
+                        ifBuffer,
+                        identString,
+                        leftValue,
+                        identString,
+                        rightValue,
+                        identString,
+                        ifBuffer
+                    )
+                );
+                _if += 1;
                 //if conditionTruth {
                     let mut conditionLinesLength = condition.lines.len();
                     let mut conditionLineIndex = 0;
@@ -266,16 +326,33 @@ unsafe fn searchCondition(lines: &mut Vec<Line>, lineIndex: usize, linesLength: 
                 //} else {
                     //println!("  !! condition false");
                 //}
+                // IF END
+                __text.push(
+                    format!(
+                        "{}endif_{}:",
+                        identString,
+                        ifBuffer
+                    )
+                );
+                _indentation -= 1;
             // else
             } else
             //if !conditionTruth 
             {
+                _indentation += 1;
+                __text.push(
+                    format!(
+                        "{}# else",
+                        identString
+                    )
+                );
                 //println!("  !  else");
                 let mut conditionLinesLength = condition.lines.len();
                 let mut conditionLineIndex = 0;
                 //println!("  !! condition true");
                 readLines(&mut condition.lines, &mut conditionLineIndex, &mut conditionLinesLength);
                 //break;
+                _indentation -= 1;
             }
         }
         return true;
@@ -286,7 +363,7 @@ unsafe fn searchCondition(lines: &mut Vec<Line>, lineIndex: usize, linesLength: 
    e:
      methodCall(parameters)
 */
-unsafe fn searchMethodsCall(line: &mut Line) -> bool {
+unsafe fn searchMethodsCall(line: &mut Line, identString: &String) -> bool {
     let tokens:       &mut Vec<Token> = &mut line.tokens;
     let tokensLength: usize           = tokens.len();
     let mut j: usize = 0;
@@ -326,11 +403,11 @@ unsafe fn searchMethodsCall(line: &mut Line) -> bool {
                         __text.push(
                             format!(
                                 "{}# println_{}\n{}movl $println_{}_0, %ecx\n{}call println\n",
-                                _identString,
+                                identString,
                                 _println,
-                                _identString,
+                                identString,
                                 _println,
-                                _identString
+                                identString
                             )
                         );
                         _println += 1;
@@ -569,12 +646,22 @@ unsafe fn searchMemoryCell(line: &mut Line) -> bool {
                     return true;
                 // basic cell
                 } else {
+                    /*
                     mcl.push(
                         MemoryCell::new(
                             nameBuffer,
                             modeBuffer,
                             typeBuffer,
                             Token::newNesting( valueBuffer )
+                        )
+                    );
+                    */
+                    __data.push(
+                        format!(
+                            "#{}\n{}:\n  .string \"{}\"\n",
+                            nameBuffer,
+                            nameBuffer,
+                            collectTokensVector(&valueBuffer)
                         )
                     );
                     return true;
@@ -597,6 +684,21 @@ unsafe fn searchMemoryCell(line: &mut Line) -> bool {
     return false;
 }
 
+// collect tokens vector
+fn collectTokensVector(tokens: &Vec<Token>) -> String {
+    let mut result: String = String::new();
+    let mut data: &str;
+    for token in tokens {
+        data = &token.data;
+        if data.len() > 0 {
+            result += data;
+        } else {
+            result += &token.dataType.to_string();
+        }
+    }
+    result
+}
+
 // parse lines
 static mut _lines:       Vec<Line> = Vec::new();
 static mut _lineIndex:   usize     = 0;
@@ -606,6 +708,7 @@ static mut __data: Vec<String> = Vec::new();
 static mut __text: Vec<String> = Vec::new();
 
 static mut _println: usize = 0;
+static mut _if:      usize = 0;
 
 pub unsafe fn parseLines(tokenizerLines: Vec<Line>) {
 // preparation
@@ -754,11 +857,10 @@ pub unsafe fn parseLines(tokenizerLines: Vec<Line>) {
 use std::fs::File;
 use std::io::{Write, BufWriter};
 static mut _indentation: usize = 0;
-static mut _identString: String = String::new();
 pub unsafe fn readLines(lines: &mut Vec<Line>, lineIndex: &mut usize, linesLength: &mut usize) {
     // indentation
+    let identString: String = " ".repeat((_indentation)*2);
     _indentation += 1;
-    _identString = " ".repeat((_indentation-1)*2);
 
     //
     let mut line: &mut Line;
@@ -787,10 +889,10 @@ pub unsafe fn readLines(lines: &mut Vec<Line>, lineIndex: &mut usize, linesLengt
         */
 
         // search conditions
-        if !searchCondition(lines, *lineIndex, linesLength) {
+        if !searchCondition(lines, *lineIndex, linesLength, identString.clone()+"  ") {
             line = &mut lines[*lineIndex]; // set editable line
             // search methods calls
-            if !searchMethodsCall(line) {
+            if !searchMethodsCall(line, &identString) {
                 // search memory cell
                 searchMemoryCell(line);
             }
